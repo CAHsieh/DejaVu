@@ -32,4 +32,5 @@ dependencies {
 
     compile 'com.facebook.android:facebook-android-sdk:4.27.0'
     compile 'org.greenrobot:greendao:3.2.2'
+    compile 'com.android.support:percent:25.3.1'
 }
