@@ -18,9 +18,11 @@ import ca.pet.dejavu.Model.LinkEntity;
 import ca.pet.dejavu.Model.LinkEntityDao;
 import ca.pet.dejavu.R;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, myRecyclerViewAdapter.OnLinkActionListener {
 
     private static final String dejavu_url = "https://youtu.be/dv13gl0a-FA";
+
+    private LinkEntity currentSelectLink = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         List<LinkEntity> currentList = linkEntityDao.loadAll();
 
         myRecyclerViewAdapter adapter = new myRecyclerViewAdapter(this, currentList);
+        adapter.setOnLinkActionListener(this);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_content);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -52,12 +55,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 LinkEntity newData = new LinkEntity();
                 newData.setLink(text);
                 newData.setTitle(title);
-                Long Id = linkEntityDao.insert(newData);
+                linkEntityDao.insert(newData);
                 currentList.add(newData);
 
                 adapter.notifyDataSetChanged();
 
-                TitleDialog titleDialog = new TitleDialog(this,Id,"");
+                TitleDialog titleDialog = new TitleDialog(this, newData);
                 titleDialog.setOnTitleActionCallback(adapter);
                 titleDialog.show();
             }
@@ -66,9 +69,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+
+        String url = currentSelectLink == null ? dejavu_url : currentSelectLink.getLink();
+
         ShareLinkContent content = new ShareLinkContent.Builder()
-                .setContentUrl(Uri.parse(dejavu_url))
+                .setContentUrl(Uri.parse(url))
                 .build();
         MessageDialog.show(this, content);
+    }
+
+    @Override
+    public void OnLinkSelected(LinkEntity entity) {
+        currentSelectLink = entity;
+    }
+
+    @Override
+    public void OnLinkDelete(LinkEntity entity) {
+        if (currentSelectLink.equals(entity))
+            currentSelectLink = null;
     }
 }

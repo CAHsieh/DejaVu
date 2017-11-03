@@ -10,7 +10,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/d_unselected"
+        android:src="@drawable/selector_d"
         android:layout_alignTop="@+id/linear_layout"
         android:layout_alignBottom="@+id/linear_layout"
         app:layout_widthPercent="10%" />
