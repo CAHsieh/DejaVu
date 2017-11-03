@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import ca.pet.dejavu.Model.LinkEntity;
 import ca.pet.dejavu.R;
 
 /**
@@ -20,15 +21,13 @@ import ca.pet.dejavu.R;
 public class TitleDialog {
 
     private AppCompatActivity appCompatActivity;
-    private Long Id;
-    private CharSequence title="";
+    private LinkEntity entity;
 
     private OnTitleSetCallback onTitleSetCallback = null;
 
-    TitleDialog(AppCompatActivity appCompatActivity,Long Id,CharSequence title) {
+    TitleDialog(AppCompatActivity appCompatActivity,LinkEntity entity) {
         this.appCompatActivity = appCompatActivity;
-        this.Id = Id;
-        this.title = title;
+        this.entity = entity;
     }
 
     public void setOnTitleActionCallback(OnTitleSetCallback onTitleSetCallback){
@@ -39,7 +38,7 @@ public class TitleDialog {
     public void show() {
 
         final View item = LayoutInflater.from(appCompatActivity).inflate(R.layout.dialog_edittitle, null);
-        ((EditText)item.findViewById(R.id.dialog_edit_title)).setText(title);
+        ((EditText)item.findViewById(R.id.dialog_edit_title)).setText(entity.getTitle());
 
         new AlertDialog.Builder(appCompatActivity,R.style.AlertDialogCustom)
                 .setView(item)
@@ -47,8 +46,9 @@ public class TitleDialog {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String title = ((EditText)item.findViewById(R.id.dialog_edit_title)).getText().toString();
+                        entity.setTitle(title);
                         if(onTitleSetCallback!=null)
-                            onTitleSetCallback.OnTitleSet(Id,title);
+                            onTitleSetCallback.OnTitleSet(entity);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
@@ -56,6 +56,6 @@ public class TitleDialog {
     }
 
     public interface OnTitleSetCallback{
-        void OnTitleSet(Long Id, String title);
+        void OnTitleSet(LinkEntity entity);
     }
 }

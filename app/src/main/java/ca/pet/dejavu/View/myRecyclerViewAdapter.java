@@ -1,6 +1,5 @@
 package ca.pet.dejavu.View;
 
-import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -22,14 +21,22 @@ import ca.pet.dejavu.R;
  * Adapter of RecycleView
  */
 
-public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAdapter.ViewHolder> implements TitleDialog.OnTitleSetCallback{
+public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAdapter.ViewHolder> implements TitleDialog.OnTitleSetCallback {
 
     private AppCompatActivity appCompatActivity;
     private List<LinkEntity> linkEntityList;
 
+    private OnLinkActionListener onLinkActionListener;
+
+    private ImageView lastSelectedImageView;
+
     myRecyclerViewAdapter(AppCompatActivity appCompatActivity, List<LinkEntity> linkEntityList) {
         this.appCompatActivity = appCompatActivity;
         this.linkEntityList = linkEntityList;
+    }
+
+    public void setOnLinkActionListener(OnLinkActionListener onLinkActionListener) {
+        this.onLinkActionListener = onLinkActionListener;
     }
 
     @Override
@@ -46,7 +53,7 @@ public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAd
         holder.D.setOnClickListener(mClickAction);
         holder.edit.setOnClickListener(onEditClick);
         holder.delete.setOnClickListener(onDeleteClick);
-        holder.Id = linkEntityList.get(position).getId();
+        holder.entity = linkEntityList.get(position);
     }
 
     @Override
@@ -58,28 +65,33 @@ public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAd
         @Override
         public void onClick(View v) {
 
+            if (lastSelectedImageView != null)
+                lastSelectedImageView.setSelected(false);
+
+            ViewHolder viewHolder = (ViewHolder) v.getTag();
+            lastSelectedImageView = viewHolder.D;
+            lastSelectedImageView.setSelected(true);
+            if (null != onLinkActionListener) {
+                onLinkActionListener.OnLinkSelected(viewHolder.entity);
+            }
         }
     };
 
     private View.OnClickListener onEditClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            ViewHolder viewHolder = (ViewHolder)v.getTag();
-            TitleDialog titleDialog = new TitleDialog(appCompatActivity,viewHolder.Id,viewHolder.title.getText());
+            ViewHolder viewHolder = (ViewHolder) v.getTag();
+            TitleDialog titleDialog = new TitleDialog(appCompatActivity, viewHolder.entity);
             titleDialog.setOnTitleActionCallback(myRecyclerViewAdapter.this);
             titleDialog.show();
         }
     };
 
     @Override
-    public void OnTitleSet(Long Id, String title) {
-
-        int i=0;
-        while(!linkEntityList.get(i).getId().equals(Id)) i++;
-        linkEntityList.get(i).setTitle(title);
+    public void OnTitleSet(LinkEntity entity) {
 
         LinkEntityDao entityDao = DBService.getInstance().getLinkEntityDao();
-        entityDao.update(linkEntityList.get(i));
+        entityDao.update(entity);
 
         notifyDataSetChanged();
     }
@@ -88,14 +100,13 @@ public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAd
         @Override
         public void onClick(View v) {
 
-            Long Id = ((ViewHolder)v.getTag()).Id;
+            LinkEntity entity = ((ViewHolder) v.getTag()).entity;
+            if (onLinkActionListener != null)
+                onLinkActionListener.OnLinkDelete(entity);
 
             LinkEntityDao entityDao = DBService.getInstance().getLinkEntityDao();
-            entityDao.deleteByKey(Id);
-
-            int i=0;
-            while(!linkEntityList.get(i).getId().equals(Id)) i++;
-            linkEntityList.remove(i);
+            entityDao.delete(entity);
+            linkEntityList.remove(entity);
 
             notifyDataSetChanged();
         }
@@ -110,7 +121,7 @@ public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAd
         ImageButton edit;
         ImageButton delete;
 
-        Long Id;
+        LinkEntity entity;
 
         ViewHolder(View v) {
             super(v);
@@ -126,4 +137,10 @@ public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAd
         }
     }
 
+
+    public interface OnLinkActionListener {
+        void OnLinkSelected(LinkEntity entity);
+
+        void OnLinkDelete(LinkEntity entity);
+    }
 }
