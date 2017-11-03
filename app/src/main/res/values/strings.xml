@@ -2,4 +2,5 @@
     <string name="app_name">DejaVu</string>
     <string name="facebook_app_id">1736014946433094</string>
     <string name="des_d">D</string>
+    <string name="dialog_hint">Edit Title</string>
 </resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+    <EditText
+        android:id="@+id/dialog_edit_title"
+        android:layout_width="match_parent"
+        android:textColor="@color/md_grey_100"
+        android:layout_height="wrap_content"
+        android:hint="@string/dialog_hint" />
+
+</android.support.design.widget.TextInputLayout>

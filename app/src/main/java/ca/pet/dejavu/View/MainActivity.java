@@ -33,6 +33,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinkEntityDao linkEntityDao = service.getLinkEntityDao();
         List<LinkEntity> currentList = linkEntityDao.loadAll();
 
+        myRecyclerViewAdapter adapter = new myRecyclerViewAdapter(this, currentList);
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_content);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setAdapter(adapter);
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -45,17 +52,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 LinkEntity newData = new LinkEntity();
                 newData.setLink(text);
                 newData.setTitle(title);
-                linkEntityDao.insert(newData);
+                Long Id = linkEntityDao.insert(newData);
                 currentList.add(newData);
 
+                adapter.notifyDataSetChanged();
+
+                TitleDialog titleDialog = new TitleDialog(this,Id,"");
+                titleDialog.setOnTitleActionCallback(adapter);
+                titleDialog.show();
             }
         }
-
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_content);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(new myRecyclerViewAdapter(currentList));
     }
 
     @Override
