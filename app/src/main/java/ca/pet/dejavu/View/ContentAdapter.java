@@ -21,7 +21,7 @@ import ca.pet.dejavu.R;
  * Adapter of RecycleView
  */
 
-public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAdapter.ViewHolder> implements TitleDialog.OnTitleSetCallback {
+public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHolder> implements TitleDialog.OnTitleSetCallback {
 
     private AppCompatActivity appCompatActivity;
     private List<LinkEntity> linkEntityList;
@@ -30,7 +30,7 @@ public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAd
 
     private ImageView lastSelectedImageView;
 
-    myRecyclerViewAdapter(AppCompatActivity appCompatActivity, List<LinkEntity> linkEntityList) {
+    ContentAdapter(AppCompatActivity appCompatActivity, List<LinkEntity> linkEntityList) {
         this.appCompatActivity = appCompatActivity;
         this.linkEntityList = linkEntityList;
     }
@@ -82,7 +82,7 @@ public class myRecyclerViewAdapter extends RecyclerView.Adapter<myRecyclerViewAd
         public void onClick(View v) {
             ViewHolder viewHolder = (ViewHolder) v.getTag();
             TitleDialog titleDialog = new TitleDialog(appCompatActivity, viewHolder.entity);
-            titleDialog.setOnTitleActionCallback(myRecyclerViewAdapter.this);
+            titleDialog.setOnTitleActionCallback(ContentAdapter.this);
             titleDialog.show();
         }
     };
