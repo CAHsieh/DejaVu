@@ -8,8 +8,15 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -18,11 +25,13 @@ import ca.pet.dejavu.Model.LinkEntity;
 import ca.pet.dejavu.Model.LinkEntityDao;
 import ca.pet.dejavu.R;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, myRecyclerViewAdapter.OnLinkActionListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, ContentAdapter.OnLinkActionListener {
 
     private static final String dejavu_url = "https://youtu.be/dv13gl0a-FA";
 
+    private LinkEntity newData = null;
     private LinkEntity currentSelectLink = null;
+    private ContentAdapter adapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinkEntityDao linkEntityDao = service.getLinkEntityDao();
         List<LinkEntity> currentList = linkEntityDao.loadAll();
 
-        myRecyclerViewAdapter adapter = new myRecyclerViewAdapter(this, currentList);
+        adapter = new ContentAdapter(this, currentList);
         adapter.setOnLinkActionListener(this);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_content);
@@ -52,17 +61,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String text = intent.getStringExtra(Intent.EXTRA_TEXT);
                 String title = intent.getStringExtra(Intent.EXTRA_TITLE);
 
-                LinkEntity newData = new LinkEntity();
+                newData = new LinkEntity();
                 newData.setLink(text);
                 newData.setTitle(title);
                 linkEntityDao.insert(newData);
                 currentList.add(newData);
 
-                adapter.notifyDataSetChanged();
-
-                TitleDialog titleDialog = new TitleDialog(this, newData);
-                titleDialog.setOnTitleActionCallback(adapter);
-                titleDialog.show();
+                if (0 == text.indexOf("https://youtu.be") || 0 == text.indexOf("https://www.youtube.com/")) {
+                    String ytDesUrl = "https://www.youtube.com/oembed?url=" + text + "&format=json";
+                    JsonObjectRequest ytDesReq = new JsonObjectRequest(ytDesUrl, successListener, errorListener);
+                    Volley.newRequestQueue(this).add(ytDesReq);
+                } else {
+                    adapter.notifyDataSetChanged();
+                    TitleDialog titleDialog = new TitleDialog(this, newData);
+                    titleDialog.setOnTitleActionCallback(adapter);
+                    titleDialog.show();
+                }
             }
         }
     }
@@ -88,4 +102,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (currentSelectLink.equals(entity))
             currentSelectLink = null;
     }
+
+    private Response.Listener<JSONObject> successListener = new Response.Listener<JSONObject>() {
+        @Override
+        public void onResponse(JSONObject response) {
+            try {
+                newData.setTitle(response.getString("title"));
+                DBService.getInstance().getLinkEntityDao().update(newData);
+                adapter.notifyDataSetChanged();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private Response.ErrorListener errorListener = new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            TitleDialog titleDialog = new TitleDialog(MainActivity.this, newData);
+            titleDialog.setOnTitleActionCallback(adapter);
+            titleDialog.show();
+        }
+    };
+
+//    private class YTasync extends AsyncTask<String, Void, String> {
+//
+//        ProgressDialog progressDialog = null;
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//            progressDialog = ProgressDialog.show(MainActivity.this, "Loading...", "requesting for title...", false, false);
+//        }
+//
+//        @Override
+//        protected String doInBackground(String... strings) {
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String s) {
+//            super.onPostExecute(s);
+//            if (null != progressDialog && progressDialog.isShowing())
+//                progressDialog.dismiss();
+//        }
+//    }
 }
