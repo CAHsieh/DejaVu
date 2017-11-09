@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onResponse(JSONObject response) {
             try {
                 newData.setTitle(response.getString("title"));
+                newData.setThumbnailUrl(response.getString("thumbnail_url"));
                 DBService.getInstance().getLinkEntityDao().update(newData);
                 adapter.notifyDataSetChanged();
             } catch (JSONException e) {

@@ -9,6 +9,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.List;
 
 import ca.pet.dejavu.Model.DBService;
@@ -54,6 +56,16 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         holder.edit.setOnClickListener(onEditClick);
         holder.delete.setOnClickListener(onDeleteClick);
         holder.entity = linkEntityList.get(position);
+
+        if (!holder.entity.getThumbnailUrl().equals("")){
+            Glide.with(holder.thumbnail.getContext())
+                    .load(holder.entity.getThumbnailUrl())
+                    .error(R.drawable.d)//load失敗的Drawable
+                    .fitCenter()//中心fit, 以原本圖片的長寬為主
+                    .into(holder.thumbnail);
+        }else{
+            holder.thumbnail.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -118,6 +130,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         TextView link;
 
         ImageView D;
+        ImageView thumbnail;
         ImageButton edit;
         ImageButton delete;
 
@@ -128,6 +141,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
             title = (TextView) v.findViewById(R.id.content_txt_title);
             link = (TextView) v.findViewById(R.id.content_txt_link);
             D = (ImageView) v.findViewById(R.id.content_img_dejavu);
+            thumbnail = (ImageView) v.findViewById(R.id.content_img_thumbnail);
             edit = (ImageButton) v.findViewById(R.id.content_img_edit);
             delete = (ImageButton) v.findViewById(R.id.content_img_delete);
 

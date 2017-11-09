@@ -19,11 +19,14 @@ public class LinkEntity {
 
     private String title;
     private String link;
-    @Generated(hash = 745129294)
-    public LinkEntity(Long Id, String title, String link) {
+    private String thumbnailUrl;
+
+    @Generated(hash = 2103337338)
+    public LinkEntity(Long Id, String title, String link, String thumbnailUrl) {
         this.Id = Id;
         this.title = title;
         this.link = link;
+        this.thumbnailUrl = thumbnailUrl;
     }
     @Generated(hash = 1585243722)
     public LinkEntity() {
@@ -45,6 +48,12 @@ public class LinkEntity {
     }
     public void setLink(String link) {
         this.link = link;
+    }
+    public String getThumbnailUrl() {
+        return this.thumbnailUrl;
+    }
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
     
 
