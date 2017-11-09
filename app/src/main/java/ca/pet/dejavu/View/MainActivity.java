@@ -8,6 +8,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -35,11 +36,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinkEntity currentSelectLink = null;
     private ContentAdapter adapter = null;
 
+    private TextView noContentText = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViewById(R.id.fab_d).setOnClickListener(this);
+        noContentText = (TextView) findViewById(R.id.txt_no_content);
 
         DBService service = DBService.getInstance();
         service.init(getApplicationContext());
@@ -81,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         }
+        if (currentList.size() > 0)
+            noContentText.setVisibility(View.GONE);
     }
 
     @Override
@@ -107,6 +113,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void OnLinkDelete(LinkEntity entity) {
         if (null != currentSelectLink && currentSelectLink.equals(entity))
             currentSelectLink = null;
+
+        if (adapter.getItemCount() == 1)
+            noContentText.setVisibility(View.VISIBLE);
     }
 
     private Response.Listener<JSONObject> successListener = new Response.Listener<JSONObject>() {

@@ -3,4 +3,9 @@
     <string name="facebook_app_id">1736014946433094</string>
     <string name="des_d">D</string>
     <string name="dialog_hint">Edit Title</string>
+    <string name="image_description_thumbnail">Image Thumbnail</string>
+    <string name="image_description_delete">Delete Button</string>
+    <string name="image_description_edit">Edit Button</string>
+    <string name="image_description_dejavu">Deja Vu</string>
+    <string name="no_content_text">GO TO ADD YOUR FAVORITE LINKS!</string>
 </resources>
