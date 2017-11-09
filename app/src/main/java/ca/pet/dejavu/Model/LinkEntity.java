@@ -1,10 +1,8 @@
 package ca.pet.dejavu.Model;
 
-import android.support.annotation.NonNull;
-
 import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
+import org.greenrobot.greendao.annotation.Id;
 
 /**
  * Created by CAHSIEH on 2017/10/29.
@@ -20,7 +18,6 @@ public class LinkEntity {
     private String title;
     private String link;
     private String thumbnailUrl;
-
     @Generated(hash = 2103337338)
     public LinkEntity(Long Id, String title, String link, String thumbnailUrl) {
         this.Id = Id;
@@ -55,6 +52,5 @@ public class LinkEntity {
     public void setThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
     }
-    
 
 }
