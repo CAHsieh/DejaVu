@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 
 import com.android.volley.Response;
@@ -28,6 +29,7 @@ import ca.pet.dejavu.R;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, ContentAdapter.OnLinkActionListener {
 
     private static final String dejavu_url = "https://youtu.be/dv13gl0a-FA";
+    private static final String LOG = "DejaVu";
 
     private LinkEntity newData = null;
     private LinkEntity currentSelectLink = null;
@@ -94,12 +96,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void OnLinkSelected(LinkEntity entity) {
+        if (entity.equals(currentSelectLink)) {
+            currentSelectLink = null;
+            return;
+        }
         currentSelectLink = entity;
     }
 
     @Override
     public void OnLinkDelete(LinkEntity entity) {
-        if (currentSelectLink.equals(entity))
+        if (null != currentSelectLink && currentSelectLink.equals(entity))
             currentSelectLink = null;
     }
 
@@ -107,10 +113,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onResponse(JSONObject response) {
             try {
+                Log.i(LOG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
                 newData.setTitle(response.getString("title"));
                 newData.setThumbnailUrl(response.getString("thumbnail_url"));
                 DBService.getInstance().getLinkEntityDao().update(newData);
-                adapter.notifyDataSetChanged();
+                adapter.notifyItemChanged(adapter.getItemCount() - 1);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -120,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Response.ErrorListener errorListener = new Response.ErrorListener() {
         @Override
         public void onErrorResponse(VolleyError error) {
+            Log.e(LOG, "JSONObject Update Error.");
             TitleDialog titleDialog = new TitleDialog(MainActivity.this, newData);
             titleDialog.setOnTitleActionCallback(adapter);
             titleDialog.show();

@@ -1,83 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.percent.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_margin="4dp"
-    android:layout_height="wrap_content">
+    xmlns:card_view="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_marginEnd="8dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="8dp"
+    card_view:cardCornerRadius="4dp">
 
-    <ImageView
-        android:id="@+id/content_img_dejavu"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/selector_d"
-        android:layout_alignTop="@+id/linear_layout"
-        android:layout_alignBottom="@+id/linear_layout"
-        app:layout_widthPercent="10%" />
+    <android.support.percent.PercentRelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:padding="8dp">
 
-    <LinearLayout
-        android:id="@+id/linear_layout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_toEndOf="@+id/content_img_dejavu"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:padding="4dp"
-        app:layout_aspectRatio="350%"
-        app:layout_widthPercent="70%">
+        <ImageView
+            android:id="@+id/content_img_dejavu"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_alignBottom="@+id/linear_layout"
+            android:layout_alignTop="@+id/linear_layout"
+            android:scaleType="fitCenter"
+            android:src="@drawable/selector_d"
+            app:layout_widthPercent="10%" />
 
-        <TextView
-            android:id="@+id/content_txt_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="start|center_vertical"
-            android:textSize="14sp"
-            android:maxLines="1" />
+        <LinearLayout
+            android:id="@+id/linear_layout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_toEndOf="@+id/content_img_dejavu"
+            android:clickable="false"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:padding="4dp"
+            app:layout_aspectRatio="350%"
+            app:layout_widthPercent="70%">
 
-        <TextView
-            android:id="@+id/content_txt_link"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="start|center_vertical"
-            android:textSize="12sp"
-            android:maxLines="1" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/content_txt_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:gravity="start|center_vertical"
+                android:maxLines="1"
+                android:textSize="14sp" />
 
-    <ImageButton
-        android:id="@+id/content_img_edit"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_toEndOf="@+id/linear_layout"
-        android:backgroundTint="#00ffffff"
-        android:scaleType="fitCenter"
-        android:src="@drawable/selector_edit"
-        android:layout_alignTop="@+id/linear_layout"
-        android:layout_alignBottom="@+id/linear_layout"
-        app:layout_widthPercent="10%" />
+            <TextView
+                android:id="@+id/content_txt_link"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:gravity="start|center_vertical"
+                android:maxLines="1"
+                android:textSize="12sp" />
+        </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/content_img_delete"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_toEndOf="@+id/content_img_edit"
-        android:backgroundTint="#00ffffff"
-        android:scaleType="fitCenter"
-        android:src="@drawable/selector_delete"
-        android:layout_alignTop="@+id/linear_layout"
-        android:layout_alignBottom="@+id/linear_layout"
-        app:layout_widthPercent="10%" />
+        <ImageView
+            android:id="@+id/content_img_edit"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_alignBottom="@+id/linear_layout"
+            android:layout_alignTop="@+id/linear_layout"
+            android:layout_toEndOf="@+id/linear_layout"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/selector_edit"
+            app:layout_widthPercent="10%" />
 
-    <ImageView
-        android:id="@+id/content_img_thumbnail"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:scaleType="fitStart"
-        android:src="@drawable/selector_d"
-        android:layout_alignStart="@+id/linear_layout"
-        android:layout_alignEnd="@+id/linear_layout"
-        android:layout_below="@+id/linear_layout"
-        app:layout_aspectRatio="30%"
-        app:layout_widthPercent="10%" />
+        <ImageView
+            android:id="@+id/content_img_delete"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_alignBottom="@+id/linear_layout"
+            android:layout_alignTop="@+id/linear_layout"
+            android:layout_toEndOf="@+id/content_img_edit"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/selector_delete"
+            app:layout_widthPercent="10%" />
+
+        <ImageView
+            android:id="@+id/content_img_thumbnail"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_alignEnd="@+id/linear_layout"
+            android:layout_alignStart="@+id/linear_layout"
+            android:layout_below="@+id/linear_layout"
+            android:scaleType="fitStart"
+            android:src="@drawable/selector_d"
+            app:layout_aspectRatio="30%"
+            app:layout_widthPercent="10%" />
+    </android.support.percent.PercentRelativeLayout>
 
 
-</android.support.percent.PercentRelativeLayout>
+</android.support.v7.widget.CardView>

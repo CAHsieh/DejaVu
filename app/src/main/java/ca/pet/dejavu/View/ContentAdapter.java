@@ -53,17 +53,18 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         holder.title.setText(linkEntityList.get(position).getTitle());
         holder.link.setText(linkEntityList.get(position).getLink());
         holder.D.setOnClickListener(mClickAction);
+        holder.parent.setOnClickListener(mClickAction);
         holder.edit.setOnClickListener(onEditClick);
         holder.delete.setOnClickListener(onDeleteClick);
         holder.entity = linkEntityList.get(position);
 
-        if (!holder.entity.getThumbnailUrl().equals("")){
+        if (holder.entity.getThumbnailUrl() != null && !holder.entity.getThumbnailUrl().equals("")) {
             Glide.with(holder.thumbnail.getContext())
                     .load(holder.entity.getThumbnailUrl())
                     .error(R.drawable.d)//load失敗的Drawable
                     .fitCenter()//中心fit, 以原本圖片的長寬為主
                     .into(holder.thumbnail);
-        }else{
+        } else {
             holder.thumbnail.setVisibility(View.GONE);
         }
     }
@@ -81,8 +82,12 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
                 lastSelectedImageView.setSelected(false);
 
             ViewHolder viewHolder = (ViewHolder) v.getTag();
-            lastSelectedImageView = viewHolder.D;
-            lastSelectedImageView.setSelected(true);
+            if (viewHolder.D.equals(lastSelectedImageView)) {
+                lastSelectedImageView = null;
+            } else {
+                lastSelectedImageView = viewHolder.D;
+                lastSelectedImageView.setSelected(true);
+            }
             if (null != onLinkActionListener) {
                 onLinkActionListener.OnLinkSelected(viewHolder.entity);
             }
@@ -126,25 +131,29 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
+        View parent;
+
         TextView title;
         TextView link;
 
         ImageView D;
         ImageView thumbnail;
-        ImageButton edit;
-        ImageButton delete;
+        ImageView edit;
+        ImageView delete;
 
         LinkEntity entity;
 
         ViewHolder(View v) {
             super(v);
+            parent = v;
             title = (TextView) v.findViewById(R.id.content_txt_title);
             link = (TextView) v.findViewById(R.id.content_txt_link);
             D = (ImageView) v.findViewById(R.id.content_img_dejavu);
             thumbnail = (ImageView) v.findViewById(R.id.content_img_thumbnail);
-            edit = (ImageButton) v.findViewById(R.id.content_img_edit);
-            delete = (ImageButton) v.findViewById(R.id.content_img_delete);
+            edit = (ImageView) v.findViewById(R.id.content_img_edit);
+            delete = (ImageView) v.findViewById(R.id.content_img_delete);
 
+            parent.setTag(this);
             D.setTag(this);
             edit.setTag(this);
             delete.setTag(this);
