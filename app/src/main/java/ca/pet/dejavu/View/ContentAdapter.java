@@ -120,11 +120,12 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
             if (onLinkActionListener != null)
                 onLinkActionListener.OnLinkDelete(entity);
 
+            int position = linkEntityList.indexOf(entity);
             LinkEntityDao entityDao = DBService.getInstance().getLinkEntityDao();
             entityDao.delete(entity);
             linkEntityList.remove(entity);
 
-            notifyDataSetChanged();
+            notifyItemRemoved(position);
         }
     };
 
