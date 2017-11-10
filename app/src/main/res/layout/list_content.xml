@@ -5,10 +5,12 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
+    android:layout_marginBottom="4dp"
     android:layout_marginEnd="8dp"
     android:layout_marginStart="8dp"
-    android:layout_marginTop="8dp"
-    card_view:cardCornerRadius="4dp">
+    android:layout_marginTop="4dp"
+    app:cardElevation="2dp"
+    card_view:cardCornerRadius="6dp">
 
     <android.support.percent.PercentRelativeLayout
         android:layout_width="match_parent"
@@ -61,26 +63,24 @@
         <ImageView
             android:id="@+id/content_img_edit"
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_alignBottom="@+id/linear_layout"
+            android:layout_height="wrap_content"
             android:layout_alignTop="@+id/linear_layout"
             android:layout_toEndOf="@+id/linear_layout"
             android:contentDescription="@string/image_description_edit"
             android:padding="4dp"
-            android:scaleType="fitCenter"
+            android:scaleType="fitStart"
             android:src="@drawable/selector_edit"
             app:layout_widthPercent="10%" />
 
         <ImageView
             android:id="@+id/content_img_delete"
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_alignBottom="@+id/linear_layout"
+            android:layout_height="wrap_content"
             android:layout_alignTop="@+id/linear_layout"
             android:layout_toEndOf="@+id/content_img_edit"
             android:contentDescription="@string/image_description_delete"
             android:padding="4dp"
-            android:scaleType="fitCenter"
+            android:scaleType="fitStart"
             android:src="@drawable/selector_delete"
             app:layout_widthPercent="10%" />
 
@@ -91,6 +91,7 @@
             android:layout_alignEnd="@+id/linear_layout"
             android:layout_alignStart="@+id/linear_layout"
             android:layout_below="@+id/linear_layout"
+            android:layout_marginBottom="2dp"
             android:contentDescription="@string/image_description_thumbnail"
             android:scaleType="fitStart"
             android:src="@drawable/selector_d"
