@@ -10,4 +10,10 @@
     <string name="no_content_text">GO TO ADD YOUR FAVORITE LINKS!</string>
     <string name="menu_title_messenger">Messenger</string>
     <string name="menu_title_line">Line</string>
+    <string name="snack_message_change_app_messenger">Share app is change to Messenger.</string>
+    <string name="snack_message_change_app_line">Share app is change to Line.</string>
+    <string name="snack_message_not_installed_messenger">Messenger is not installed!</string>
+    <string name="snack_message_not_installed_line">Line is not installed!</string>
+    <string name="package_name_messenger">com.facebook.orca</string>
+    <string name="package_name_line">jp.naver.line.android</string>
 </resources>

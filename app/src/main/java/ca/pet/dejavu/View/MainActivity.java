@@ -1,9 +1,11 @@
 package ca.pet.dejavu.View;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private FloatingActionButton sendButton = null;
     private TextView noContentText = null;
+    private Snackbar snackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,10 +129,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case R.id.menu_item_messenger:
                     sendButton.setImageResource(R.drawable.ic_action_send_messenger);
                     sendButton.setTag(TAG_MESSENGER);
+                    showSnack(getString(R.string.snack_message_change_app_messenger));
                     break;
                 case R.id.menu_item_line:
                     sendButton.setImageResource(R.drawable.ic_action_send_line);
                     sendButton.setTag(TAG_LINE);
+                    showSnack(getString(R.string.snack_message_change_app_line));
                     break;
             }
             return true;
@@ -138,17 +143,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+        String url = currentSelectLink == null ? dejavu_url : currentSelectLink.getLink();
 
         if (v.getTag() == null || v.getTag().equals(TAG_MESSENGER)) {
-
-            String url = currentSelectLink == null ? dejavu_url : currentSelectLink.getLink();
-
-            ShareLinkContent content = new ShareLinkContent.Builder()
-                    .setContentUrl(Uri.parse(url))
-                    .build();
-            MessageDialog.show(this, content);
+            //share to messenger
+            if (isAppInstalled(getString(R.string.package_name_messenger))) {
+                ShareLinkContent content = new ShareLinkContent.Builder()
+                        .setContentUrl(Uri.parse(url))
+                        .build();
+                MessageDialog.show(this, content);
+            } else {
+                showSnack(getString(R.string.snack_message_not_installed_messenger));
+            }
         } else {
+            //share to line
+            if (isAppInstalled(getString(R.string.package_name_line))) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.setPackage("jp.naver.line.android");
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT, url);
+                startActivity(intent);
+            } else {
+                showSnack(getString(R.string.snack_message_not_installed_line));
+            }
+        }
+    }
 
+    private boolean isAppInstalled(String packageName) {
+        PackageManager pm = getPackageManager();
+        try {
+            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.i(LOG, packageName + " is not installed.");
+        }
+        return false;
+    }
+
+    private void showSnack(String message) {
+        if (snackbar == null) {
+            snackbar = Snackbar
+                    .make(findViewById(R.id.list_content), message, Snackbar.LENGTH_SHORT);
+        }
+        if (!snackbar.isShown()) {
+            snackbar.setText(message);
+            snackbar.show();
         }
     }
 
@@ -194,27 +234,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             titleDialog.show();
         }
     };
-
-//    private class YTasync extends AsyncTask<String, Void, String> {
-//
-//        ProgressDialog progressDialog = null;
-//
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//            progressDialog = ProgressDialog.show(MainActivity.this, "Loading...", "requesting for title...", false, false);
-//        }
-//
-//        @Override
-//        protected String doInBackground(String... strings) {
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(String s) {
-//            super.onPostExecute(s);
-//            if (null != progressDialog && progressDialog.isShowing())
-//                progressDialog.dismiss();
-//        }
-//    }
 }
