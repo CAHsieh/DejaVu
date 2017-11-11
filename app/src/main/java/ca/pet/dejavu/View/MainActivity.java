@@ -3,10 +3,15 @@ package ca.pet.dejavu.View;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -31,18 +36,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final String dejavu_url = "https://youtu.be/dv13gl0a-FA";
     private static final String LOG = "DejaVu";
+    private static final String TAG_MESSENGER = "Messenger";
+    private static final String TAG_LINE = "Line";
 
     private LinkEntity newData = null;
     private LinkEntity currentSelectLink = null;
     private ContentAdapter adapter = null;
 
+    private FloatingActionButton sendButton = null;
     private TextView noContentText = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.fab_d).setOnClickListener(this);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+
+        toolbar.setNavigationIcon(R.drawable.ic_action_menu);
+        toolbar.inflateMenu(R.menu.menu_toolbar_main);
+        toolbar.setNavigationOnClickListener(onNavigationIconClick);
+        toolbar.setOnMenuItemClickListener(onToolBarItemClick);
+
+        sendButton = (FloatingActionButton) findViewById(R.id.fab_d);
+        sendButton.setOnClickListener(this);
         noContentText = (TextView) findViewById(R.id.txt_no_content);
 
         DBService service = DBService.getInstance();
@@ -89,15 +106,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             noContentText.setVisibility(View.GONE);
     }
 
+    private View.OnClickListener onNavigationIconClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            openDrawer();
+        }
+    };
+
+    private void openDrawer() {
+        ((DrawerLayout) findViewById(R.id.main_drawer)).openDrawer(Gravity.START);
+    }
+
+    private Toolbar.OnMenuItemClickListener onToolBarItemClick = new Toolbar.OnMenuItemClickListener() {
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            int itemId = item.getItemId();
+
+            switch (itemId) {
+                case R.id.menu_item_messenger:
+                    sendButton.setImageResource(R.drawable.ic_action_send_messenger);
+                    sendButton.setTag(TAG_MESSENGER);
+                    break;
+                case R.id.menu_item_line:
+                    sendButton.setImageResource(R.drawable.ic_action_send_line);
+                    sendButton.setTag(TAG_LINE);
+                    break;
+            }
+            return true;
+        }
+    };
+
     @Override
     public void onClick(View v) {
 
-        String url = currentSelectLink == null ? dejavu_url : currentSelectLink.getLink();
+        if (v.getTag() == null || v.getTag().equals(TAG_MESSENGER)) {
 
-        ShareLinkContent content = new ShareLinkContent.Builder()
-                .setContentUrl(Uri.parse(url))
-                .build();
-        MessageDialog.show(this, content);
+            String url = currentSelectLink == null ? dejavu_url : currentSelectLink.getLink();
+
+            ShareLinkContent content = new ShareLinkContent.Builder()
+                    .setContentUrl(Uri.parse(url))
+                    .build();
+            MessageDialog.show(this, content);
+        } else {
+
+        }
     }
 
     @Override
