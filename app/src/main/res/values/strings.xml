@@ -16,4 +16,5 @@
     <string name="snack_message_not_installed_line">Line is not installed!</string>
     <string name="package_name_messenger">com.facebook.orca</string>
     <string name="package_name_line">jp.naver.line.android</string>
+    <string name="menu_title_search">search</string>
 </resources>

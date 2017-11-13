@@ -6,6 +6,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.transition.ChangeBounds;
+import android.support.transition.Fade;
+import android.support.transition.Transition;
+import android.support.transition.TransitionManager;
+import android.support.transition.TransitionSet;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,6 +21,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.android.volley.Response;
@@ -135,6 +142,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sendButton.setImageResource(R.drawable.ic_action_send_line);
                     sendButton.setTag(TAG_LINE);
                     showSnack(getString(R.string.snack_message_change_app_line));
+                    break;
+                case R.id.menu_item_search:
+
+                    Transition changeBounds = new ChangeBounds();
+                    changeBounds.setDuration(100);
+                    Transition fade_in = new Fade(Fade.IN);
+                    fade_in.setDuration(100);
+                    TransitionSet transitionSet = new TransitionSet();
+                    transitionSet.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
+                    transitionSet.addTransition(changeBounds).addTransition(fade_in);
+
+                    TransitionManager.beginDelayedTransition((ViewGroup) findViewById(R.id.toolbar_main), transitionSet);
+                    MenuItemCompat.expandActionView(item);
                     break;
             }
             return true;
