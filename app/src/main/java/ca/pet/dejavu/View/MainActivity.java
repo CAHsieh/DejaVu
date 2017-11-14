@@ -116,49 +116,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             noContentText.setVisibility(View.GONE);
     }
 
-    private View.OnClickListener onNavigationIconClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            openDrawer();
-        }
+    private View.OnClickListener onNavigationIconClick = (v) -> {
+        openDrawer();
     };
+
 
     private void openDrawer() {
         ((DrawerLayout) findViewById(R.id.main_drawer)).openDrawer(Gravity.START);
     }
 
-    private Toolbar.OnMenuItemClickListener onToolBarItemClick = new Toolbar.OnMenuItemClickListener() {
-        @Override
-        public boolean onMenuItemClick(MenuItem item) {
-            int itemId = item.getItemId();
+    private Toolbar.OnMenuItemClickListener onToolBarItemClick = (item) -> {
+        int itemId = item.getItemId();
 
-            switch (itemId) {
-                case R.id.menu_item_messenger:
-                    sendButton.setImageResource(R.drawable.ic_action_send_messenger);
-                    sendButton.setTag(TAG_MESSENGER);
-                    showSnack(getString(R.string.snack_message_change_app_messenger));
-                    break;
-                case R.id.menu_item_line:
-                    sendButton.setImageResource(R.drawable.ic_action_send_line);
-                    sendButton.setTag(TAG_LINE);
-                    showSnack(getString(R.string.snack_message_change_app_line));
-                    break;
-                case R.id.menu_item_search:
+        switch (itemId) {
+            case R.id.menu_item_messenger:
+                sendButton.setImageResource(R.drawable.ic_action_send_messenger);
+                sendButton.setTag(TAG_MESSENGER);
+                showSnack(getString(R.string.snack_message_change_app_messenger));
+                break;
+            case R.id.menu_item_line:
+                sendButton.setImageResource(R.drawable.ic_action_send_line);
+                sendButton.setTag(TAG_LINE);
+                showSnack(getString(R.string.snack_message_change_app_line));
+                break;
+            case R.id.menu_item_search:
 
-                    Transition changeBounds = new ChangeBounds();
-                    changeBounds.setDuration(100);
-                    Transition fade_in = new Fade(Fade.IN);
-                    fade_in.setDuration(100);
-                    TransitionSet transitionSet = new TransitionSet();
-                    transitionSet.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
-                    transitionSet.addTransition(changeBounds).addTransition(fade_in);
+                Transition changeBounds = new ChangeBounds();
+                changeBounds.setDuration(100);
+                Transition fade_in = new Fade(Fade.IN);
+                fade_in.setDuration(100);
+                TransitionSet transitionSet = new TransitionSet();
+                transitionSet.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
+                transitionSet.addTransition(changeBounds).addTransition(fade_in);
 
-                    TransitionManager.beginDelayedTransition((ViewGroup) findViewById(R.id.toolbar_main), transitionSet);
-                    MenuItemCompat.expandActionView(item);
-                    break;
-            }
-            return true;
+                TransitionManager.beginDelayedTransition((ViewGroup) findViewById(R.id.toolbar_main), transitionSet);
+                MenuItemCompat.expandActionView(item);
+                break;
         }
+        return true;
     };
 
     @Override
@@ -230,28 +225,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             noContentText.setVisibility(View.VISIBLE);
     }
 
-    private Response.Listener<JSONObject> successListener = new Response.Listener<JSONObject>() {
-        @Override
-        public void onResponse(JSONObject response) {
-            try {
-                Log.i(LOG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
-                newData.setTitle(response.getString("title"));
-                newData.setThumbnailUrl(response.getString("thumbnail_url"));
-                DBService.getInstance().getLinkEntityDao().update(newData);
-                adapter.notifyItemChanged(adapter.getItemCount() - 1);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+    private Response.Listener<JSONObject> successListener = (response) -> {
+        try {
+            Log.i(LOG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
+            newData.setTitle(response.getString("title"));
+            newData.setThumbnailUrl(response.getString("thumbnail_url"));
+            DBService.getInstance().getLinkEntityDao().update(newData);
+            adapter.notifyItemChanged(adapter.getItemCount() - 1);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     };
 
-    private Response.ErrorListener errorListener = new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-            Log.e(LOG, "JSONObject Update Error.");
-            TitleDialog titleDialog = new TitleDialog(MainActivity.this, newData);
-            titleDialog.setOnTitleActionCallback(adapter);
-            titleDialog.show();
-        }
+    private Response.ErrorListener errorListener = (error) -> {
+        Log.e(LOG, "JSONObject Update Error.");
+        TitleDialog titleDialog = new TitleDialog(MainActivity.this, newData);
+        titleDialog.setOnTitleActionCallback(adapter);
+        titleDialog.show();
     };
 }
