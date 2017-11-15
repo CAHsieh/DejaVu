@@ -19,13 +19,11 @@ import ca.pet.dejavu.R;
 
 class TitleDialog {
 
-    private AppCompatActivity appCompatActivity;
     private LinkEntity entity;
 
     private OnTitleSetCallback onTitleSetCallback = null;
 
-    TitleDialog(AppCompatActivity appCompatActivity, LinkEntity entity) {
-        this.appCompatActivity = appCompatActivity;
+    TitleDialog(LinkEntity entity) {
         this.entity = entity;
     }
 
@@ -34,7 +32,7 @@ class TitleDialog {
     }
 
     @SuppressLint("InflateParams")
-    void show() {
+    void show(AppCompatActivity appCompatActivity) {
 
         final View item = LayoutInflater.from(appCompatActivity).inflate(R.layout.dialog_edittitle, null);
         ((EditText) item.findViewById(R.id.dialog_edit_title)).setText(entity.getTitle());

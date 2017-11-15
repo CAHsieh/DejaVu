@@ -16,6 +16,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
@@ -34,14 +35,13 @@ import com.facebook.share.widget.MessageDialog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.List;
-
 import ca.pet.dejavu.Model.DBService;
 import ca.pet.dejavu.Model.LinkEntity;
-import ca.pet.dejavu.Model.LinkEntityDao;
+import ca.pet.dejavu.Presenter.LinkEntityPresenter;
 import ca.pet.dejavu.R;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, ContentAdapter.OnLinkActionListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, ContentAdapter.OnItemActionListener,
+        SearchView.OnQueryTextListener {
 
     private static final String dejavu_url = "https://youtu.be/dv13gl0a-FA";
     private static final String LOG = "DejaVu";
@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private LinkEntity newData = null;
     private LinkEntity currentSelectLink = null;
+
+    private LinkEntityPresenter entityPresenter = null;
     private ContentAdapter adapter = null;
 
     private FloatingActionButton sendButton = null;
@@ -67,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         toolbar.inflateMenu(R.menu.menu_toolbar_main);
         toolbar.setNavigationOnClickListener(onNavigationIconClick);
         toolbar.setOnMenuItemClickListener(onToolBarItemClick);
+        SearchView searchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_item_search).getActionView();
+        searchView.setOnQueryTextListener(this);
 
         sendButton = (FloatingActionButton) findViewById(R.id.fab_d);
         sendButton.setOnClickListener(this);
@@ -74,11 +78,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         DBService service = DBService.getInstance();
         service.init(getApplicationContext());
-        LinkEntityDao linkEntityDao = service.getLinkEntityDao();
-        List<LinkEntity> currentList = linkEntityDao.loadAll();
+        entityPresenter = LinkEntityPresenter.getInstance();
 
-        adapter = new ContentAdapter(this, currentList);
-        adapter.setOnLinkActionListener(this);
+        adapter = new ContentAdapter();
+        adapter.setOnItemActionListener(this);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_content);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -97,8 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 newData = new LinkEntity();
                 newData.setLink(text);
                 newData.setTitle(title);
-                linkEntityDao.insert(newData);
-                currentList.add(newData);
+                entityPresenter.insert(newData);
 
                 if (0 == text.indexOf("https://youtu.be") || 0 == text.indexOf("https://www.youtube.com/")) {
                     String ytDesUrl = "https://www.youtube.com/oembed?url=" + text + "&format=json";
@@ -106,59 +108,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Volley.newRequestQueue(this).add(ytDesReq);
                 } else {
                     adapter.notifyDataSetChanged();
-                    TitleDialog titleDialog = new TitleDialog(this, newData);
+                    TitleDialog titleDialog = new TitleDialog(newData);
                     titleDialog.setOnTitleActionCallback(adapter);
-                    titleDialog.show();
+                    titleDialog.show(this);
                 }
             }
         }
-        if (currentList.size() > 0)
+        if (entityPresenter.getPresenting_list().size() > 0)
             noContentText.setVisibility(View.GONE);
     }
 
-    private View.OnClickListener onNavigationIconClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            openDrawer();
-        }
+    private View.OnClickListener onNavigationIconClick = (v) -> {
+        openDrawer();
     };
+
 
     private void openDrawer() {
         ((DrawerLayout) findViewById(R.id.main_drawer)).openDrawer(Gravity.START);
     }
 
-    private Toolbar.OnMenuItemClickListener onToolBarItemClick = new Toolbar.OnMenuItemClickListener() {
-        @Override
-        public boolean onMenuItemClick(MenuItem item) {
-            int itemId = item.getItemId();
+    private Toolbar.OnMenuItemClickListener onToolBarItemClick = (item) -> {
+        int itemId = item.getItemId();
 
-            switch (itemId) {
-                case R.id.menu_item_messenger:
-                    sendButton.setImageResource(R.drawable.ic_action_send_messenger);
-                    sendButton.setTag(TAG_MESSENGER);
-                    showSnack(getString(R.string.snack_message_change_app_messenger));
-                    break;
-                case R.id.menu_item_line:
-                    sendButton.setImageResource(R.drawable.ic_action_send_line);
-                    sendButton.setTag(TAG_LINE);
-                    showSnack(getString(R.string.snack_message_change_app_line));
-                    break;
-                case R.id.menu_item_search:
+        switch (itemId) {
+            case R.id.menu_item_messenger:
+                sendButton.setImageResource(R.drawable.ic_action_send_messenger);
+                sendButton.setTag(TAG_MESSENGER);
+                showSnack(getString(R.string.snack_message_change_app_messenger));
+                break;
+            case R.id.menu_item_line:
+                sendButton.setImageResource(R.drawable.ic_action_send_line);
+                sendButton.setTag(TAG_LINE);
+                showSnack(getString(R.string.snack_message_change_app_line));
+                break;
+            case R.id.menu_item_search:
 
-                    Transition changeBounds = new ChangeBounds();
-                    changeBounds.setDuration(100);
-                    Transition fade_in = new Fade(Fade.IN);
-                    fade_in.setDuration(100);
-                    TransitionSet transitionSet = new TransitionSet();
-                    transitionSet.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
-                    transitionSet.addTransition(changeBounds).addTransition(fade_in);
+                Transition changeBounds = new ChangeBounds();
+                changeBounds.setDuration(100);
+                Transition fade_in = new Fade(Fade.IN);
+                fade_in.setDuration(100);
+                TransitionSet transitionSet = new TransitionSet();
+                transitionSet.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
+                transitionSet.addTransition(changeBounds).addTransition(fade_in);
 
-                    TransitionManager.beginDelayedTransition((ViewGroup) findViewById(R.id.toolbar_main), transitionSet);
-                    MenuItemCompat.expandActionView(item);
-                    break;
-            }
-            return true;
+                TransitionManager.beginDelayedTransition((ViewGroup) findViewById(R.id.toolbar_main), transitionSet);
+                MenuItemCompat.expandActionView(item);
+                break;
         }
+        return true;
     };
 
     @Override
@@ -226,32 +223,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (null != currentSelectLink && currentSelectLink.equals(entity))
             currentSelectLink = null;
 
-        if (adapter.getItemCount() == 1)
+        if (entityPresenter.table_size() == 1)
             noContentText.setVisibility(View.VISIBLE);
     }
 
-    private Response.Listener<JSONObject> successListener = new Response.Listener<JSONObject>() {
-        @Override
-        public void onResponse(JSONObject response) {
-            try {
-                Log.i(LOG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
-                newData.setTitle(response.getString("title"));
-                newData.setThumbnailUrl(response.getString("thumbnail_url"));
-                DBService.getInstance().getLinkEntityDao().update(newData);
-                adapter.notifyItemChanged(adapter.getItemCount() - 1);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+    @Override
+    public void OnTitleModifyClick(LinkEntity entity) {
+        TitleDialog titleDialog = new TitleDialog(entity);
+        titleDialog.setOnTitleActionCallback(adapter);
+        titleDialog.show(this);
+    }
+
+    private Response.Listener<JSONObject> successListener = (response) -> {
+        try {
+            Log.i(LOG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
+            newData.setTitle(response.getString("title"));
+            newData.setThumbnailUrl(response.getString("thumbnail_url"));
+            entityPresenter.update(newData);
+            adapter.notifyItemChanged(entityPresenter.presenting_size() - 1);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     };
 
-    private Response.ErrorListener errorListener = new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-            Log.e(LOG, "JSONObject Update Error.");
-            TitleDialog titleDialog = new TitleDialog(MainActivity.this, newData);
-            titleDialog.setOnTitleActionCallback(adapter);
-            titleDialog.show();
-        }
+    private Response.ErrorListener errorListener = (error) -> {
+        Log.e(LOG, "JSONObject Update Error.");
+        TitleDialog titleDialog = new TitleDialog(newData);
+        titleDialog.setOnTitleActionCallback(adapter);
+        titleDialog.show(MainActivity.this);
     };
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        //need not to use
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        entityPresenter.queryByTitle(newText);
+        adapter.notifyDataSetChanged();
+        return false;
+    }
 }

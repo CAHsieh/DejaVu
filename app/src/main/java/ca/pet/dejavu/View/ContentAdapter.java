@@ -1,6 +1,5 @@
 package ca.pet.dejavu.View;
 
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,11 +9,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import java.util.List;
-
-import ca.pet.dejavu.Model.DBService;
 import ca.pet.dejavu.Model.LinkEntity;
-import ca.pet.dejavu.Model.LinkEntityDao;
+import ca.pet.dejavu.Presenter.LinkEntityPresenter;
 import ca.pet.dejavu.R;
 
 /**
@@ -24,20 +20,19 @@ import ca.pet.dejavu.R;
 
 public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHolder> implements TitleDialog.OnTitleSetCallback {
 
-    private AppCompatActivity appCompatActivity;
-    private List<LinkEntity> linkEntityList;
+    private LinkEntityPresenter entityPresenter;
 
-    private OnLinkActionListener onLinkActionListener;
+    private OnItemActionListener onItemActionListener;
 
     private ImageView lastSelectedImageView;
 
-    ContentAdapter(AppCompatActivity appCompatActivity, List<LinkEntity> linkEntityList) {
-        this.appCompatActivity = appCompatActivity;
-        this.linkEntityList = linkEntityList;
+    ContentAdapter() {
+        entityPresenter = LinkEntityPresenter.getInstance();
+        entityPresenter.queryAll();
     }
 
-    void setOnLinkActionListener(OnLinkActionListener onLinkActionListener) {
-        this.onLinkActionListener = onLinkActionListener;
+    void setOnItemActionListener(OnItemActionListener onItemActionListener) {
+        this.onItemActionListener = onItemActionListener;
     }
 
     @Override
@@ -49,13 +44,13 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.title.setText(linkEntityList.get(position).getTitle());
-        holder.link.setText(linkEntityList.get(position).getLink());
+        holder.title.setText(entityPresenter.getEntity(position).getTitle());
+        holder.link.setText(entityPresenter.getEntity(position).getLink());
         holder.D.setOnClickListener(mClickAction);
         holder.parent.setOnClickListener(mClickAction);
         holder.edit.setOnClickListener(onEditClick);
         holder.delete.setOnClickListener(onDeleteClick);
-        holder.entity = linkEntityList.get(position);
+        holder.entity = entityPresenter.getEntity(position);
 
         if (holder.entity.getThumbnailUrl() != null && !holder.entity.getThumbnailUrl().equals("")) {
             Glide.with(holder.thumbnail.getContext())
@@ -70,63 +65,47 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return linkEntityList.size();
+        return entityPresenter.presenting_size();
     }
 
-    private View.OnClickListener mClickAction = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
+    private View.OnClickListener mClickAction = (v) -> {
 
-            if (lastSelectedImageView != null)
-                lastSelectedImageView.setSelected(false);
+        if (lastSelectedImageView != null)
+            lastSelectedImageView.setSelected(false);
 
-            ViewHolder viewHolder = (ViewHolder) v.getTag();
-            if (viewHolder.D.equals(lastSelectedImageView)) {
-                lastSelectedImageView = null;
-            } else {
-                lastSelectedImageView = viewHolder.D;
-                lastSelectedImageView.setSelected(true);
-            }
-            if (null != onLinkActionListener) {
-                onLinkActionListener.OnLinkSelected(viewHolder.entity);
-            }
+        ViewHolder viewHolder = (ViewHolder) v.getTag();
+        if (viewHolder.D.equals(lastSelectedImageView)) {
+            lastSelectedImageView = null;
+        } else {
+            lastSelectedImageView = viewHolder.D;
+            lastSelectedImageView.setSelected(true);
+        }
+        if (null != onItemActionListener) {
+            onItemActionListener.OnLinkSelected(viewHolder.entity);
         }
     };
 
-    private View.OnClickListener onEditClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            ViewHolder viewHolder = (ViewHolder) v.getTag();
-            TitleDialog titleDialog = new TitleDialog(appCompatActivity, viewHolder.entity);
-            titleDialog.setOnTitleActionCallback(ContentAdapter.this);
-            titleDialog.show();
-        }
+    private View.OnClickListener onEditClick = (v) -> {
+        ViewHolder viewHolder = (ViewHolder) v.getTag();
+        if (onItemActionListener != null)
+            onItemActionListener.OnTitleModifyClick(viewHolder.entity);
     };
 
     @Override
     public void OnTitleSet(LinkEntity entity) {
 
-        LinkEntityDao entityDao = DBService.getInstance().getLinkEntityDao();
-        entityDao.update(entity);
-
+        entityPresenter.update(entity);
         notifyDataSetChanged();
     }
 
-    private View.OnClickListener onDeleteClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
+    private View.OnClickListener onDeleteClick = (v) -> {
 
-            LinkEntity entity = ((ViewHolder) v.getTag()).entity;
-            if (onLinkActionListener != null)
-                onLinkActionListener.OnLinkDelete(entity);
+        LinkEntity entity = ((ViewHolder) v.getTag()).entity;
+        if (onItemActionListener != null)
+            onItemActionListener.OnLinkDelete(entity);
 
-            int position = linkEntityList.indexOf(entity);
-            LinkEntityDao entityDao = DBService.getInstance().getLinkEntityDao();
-            entityDao.delete(entity);
-            linkEntityList.remove(entity);
-
-            notifyItemRemoved(position);
-        }
+        int position = entityPresenter.delete(entity);
+        notifyItemRemoved(position);
     };
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -161,9 +140,11 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
     }
 
 
-    public interface OnLinkActionListener {
+    public interface OnItemActionListener {
         void OnLinkSelected(LinkEntity entity);
 
         void OnLinkDelete(LinkEntity entity);
+
+        void OnTitleModifyClick(LinkEntity entity);
     }
 }
