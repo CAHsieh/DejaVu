@@ -20,18 +20,19 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +40,7 @@ import ca.pet.dejavu.Model.DBService;
 import ca.pet.dejavu.Model.LinkEntity;
 import ca.pet.dejavu.Presenter.LinkEntityPresenter;
 import ca.pet.dejavu.R;
+import ca.pet.dejavu.Utils.LinkEntityEvent;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, ContentAdapter.OnItemActionListener,
         SearchView.OnQueryTextListener {
@@ -80,6 +82,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         service.init(getApplicationContext());
         entityPresenter = LinkEntityPresenter.getInstance();
 
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
         adapter = new ContentAdapter();
         adapter.setOnItemActionListener(this);
 
@@ -100,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 newData = new LinkEntity();
                 newData.setLink(text);
                 newData.setTitle(title);
-                entityPresenter.insert(newData);
+                entityPresenter.doAction(LinkEntityPresenter.ACTION_INSERT, newData, null);
 
                 if (0 == text.indexOf("https://youtu.be") || 0 == text.indexOf("https://www.youtube.com/")) {
                     String ytDesUrl = "https://www.youtube.com/oembed?url=" + text + "&format=json";
@@ -114,13 +119,107 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         }
-        if (entityPresenter.getPresenting_list().size() > 0)
-            noContentText.setVisibility(View.GONE);
     }
 
-    private View.OnClickListener onNavigationIconClick = (v) -> {
-        openDrawer();
-    };
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        String url = currentSelectLink == null ? dejavu_url : currentSelectLink.getLink();
+
+        if (v.getTag() == null || v.getTag().equals(TAG_MESSENGER)) {
+            //share to messenger
+            if (isAppInstalled(getString(R.string.package_name_messenger))) {
+                ShareLinkContent content = new ShareLinkContent.Builder()
+                        .setContentUrl(Uri.parse(url))
+                        .build();
+                MessageDialog.show(this, content);
+            } else {
+                showSnack(getString(R.string.snack_message_not_installed_messenger));
+            }
+        } else {
+            //share to line
+            if (isAppInstalled(getString(R.string.package_name_line))) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.setPackage("jp.naver.line.android");
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT, url);
+                startActivity(intent);
+            } else {
+                showSnack(getString(R.string.snack_message_not_installed_line));
+            }
+        }
+    }
+
+    @Override
+    public void OnLinkSelected(LinkEntity entity) {
+        if (entity.equals(currentSelectLink)) {
+            currentSelectLink = null;
+            return;
+        }
+        currentSelectLink = entity;
+    }
+
+    @Override
+    public void OnLinkDelete(LinkEntity entity) {
+        if (null != currentSelectLink && currentSelectLink.equals(entity))
+            currentSelectLink = null;
+
+        if (entityPresenter.table_size() == 1)
+            noContentText.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void OnTitleModifyClick(LinkEntity entity) {
+        TitleDialog titleDialog = new TitleDialog(entity);
+        titleDialog.setOnTitleActionCallback(adapter);
+        titleDialog.show(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onLinkEntityEvent(LinkEntityEvent event) {
+        int action_Id = event.getAction_Id();
+        int tag = event.getTag();
+
+        switch (action_Id) {
+            case LinkEntityPresenter.ACTION_QUERYALL:
+                if (entityPresenter.getPresenting_list().size() > 0)
+                    noContentText.setVisibility(View.GONE);
+                //fall through
+            case LinkEntityPresenter.ACTION_QUERYBYTITLE:
+                adapter.notifyDataSetChanged();
+                break;
+            case LinkEntityPresenter.ACTION_DELETE:
+                if (-1 != tag) {
+                    adapter.notifyItemRemoved(tag);
+                } else {
+                    adapter.notifyDataSetChanged();
+                }
+                break;
+            case LinkEntityPresenter.ACTION_UPDATE:
+                if (-1 != tag) {
+                    adapter.notifyItemChanged(tag);
+                } else {
+                    adapter.notifyDataSetChanged();
+                }
+                break;
+        }
+    }
+
+    private View.OnClickListener onNavigationIconClick = (v) -> openDrawer();
 
 
     private void openDrawer() {
@@ -158,35 +257,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     };
 
-    @Override
-    public void onClick(View v) {
-        String url = currentSelectLink == null ? dejavu_url : currentSelectLink.getLink();
-
-        if (v.getTag() == null || v.getTag().equals(TAG_MESSENGER)) {
-            //share to messenger
-            if (isAppInstalled(getString(R.string.package_name_messenger))) {
-                ShareLinkContent content = new ShareLinkContent.Builder()
-                        .setContentUrl(Uri.parse(url))
-                        .build();
-                MessageDialog.show(this, content);
-            } else {
-                showSnack(getString(R.string.snack_message_not_installed_messenger));
-            }
-        } else {
-            //share to line
-            if (isAppInstalled(getString(R.string.package_name_line))) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_SEND);
-                intent.setPackage("jp.naver.line.android");
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TEXT, url);
-                startActivity(intent);
-            } else {
-                showSnack(getString(R.string.snack_message_not_installed_line));
-            }
-        }
-    }
-
     private boolean isAppInstalled(String packageName) {
         PackageManager pm = getPackageManager();
         try {
@@ -209,38 +279,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    public void OnLinkSelected(LinkEntity entity) {
-        if (entity.equals(currentSelectLink)) {
-            currentSelectLink = null;
-            return;
-        }
-        currentSelectLink = entity;
-    }
-
-    @Override
-    public void OnLinkDelete(LinkEntity entity) {
-        if (null != currentSelectLink && currentSelectLink.equals(entity))
-            currentSelectLink = null;
-
-        if (entityPresenter.table_size() == 1)
-            noContentText.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void OnTitleModifyClick(LinkEntity entity) {
-        TitleDialog titleDialog = new TitleDialog(entity);
-        titleDialog.setOnTitleActionCallback(adapter);
-        titleDialog.show(this);
-    }
-
     private Response.Listener<JSONObject> successListener = (response) -> {
         try {
             Log.i(LOG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
             newData.setTitle(response.getString("title"));
             newData.setThumbnailUrl(response.getString("thumbnail_url"));
-            entityPresenter.update(newData);
-            adapter.notifyItemChanged(entityPresenter.presenting_size() - 1);
+
+            new Thread() {
+                @Override
+                public void run() {
+                    entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE, newData, null);
+                }
+            }.start();
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -261,8 +311,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        entityPresenter.queryByTitle(newText);
-        adapter.notifyDataSetChanged();
+        new Thread() {
+            @Override
+            public void run() {
+                entityPresenter.doAction(LinkEntityPresenter.ACTION_QUERYBYTITLE, null, newText);
+            }
+        }.start();
         return false;
     }
 }

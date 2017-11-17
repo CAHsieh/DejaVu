@@ -1,5 +1,8 @@
 package ca.pet.dejavu.Presenter;
 
+import android.support.annotation.Nullable;
+
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.greendao.Property;
 import org.greenrobot.greendao.query.QueryBuilder;
 
@@ -8,6 +11,7 @@ import java.util.List;
 import ca.pet.dejavu.Model.DBService;
 import ca.pet.dejavu.Model.LinkEntity;
 import ca.pet.dejavu.Model.LinkEntityDao;
+import ca.pet.dejavu.Utils.LinkEntityEvent;
 
 /**
  * Created by CAHSIEH on 2017/11/15.
@@ -15,6 +19,12 @@ import ca.pet.dejavu.Model.LinkEntityDao;
  */
 
 public class LinkEntityPresenter {
+
+    public static final int ACTION_QUERYALL = 0x01;
+    public static final int ACTION_QUERYBYTITLE = 0x02;
+    public static final int ACTION_INSERT = 0x03;
+    public static final int ACTION_UPDATE = 0x04;
+    public static final int ACTION_DELETE = 0x05;
 
     private static LinkEntityPresenter instance = null;
 
@@ -39,11 +49,36 @@ public class LinkEntityPresenter {
         return instance;
     }
 
-    public void queryAll() {
+    public synchronized void doAction(int action_Id, @Nullable LinkEntity entity, @Nullable String title) {
+        int position = 0;
+        switch (action_Id) {
+            case ACTION_QUERYALL:
+                queryAll();
+                break;
+            case ACTION_QUERYBYTITLE:
+                queryByTitle(title);
+                break;
+            case ACTION_INSERT:
+                insert(entity);
+                break;
+            case ACTION_UPDATE:
+                update(entity);
+                position = presenting_list.indexOf(entity);
+                break;
+            case ACTION_DELETE:
+                position = delete(entity);
+                break;
+        }
+
+        LinkEntityEvent event = new LinkEntityEvent(action_Id, position);
+        EventBus.getDefault().post(event);
+    }
+
+    private void queryAll() {
         presenting_list = entityDao.loadAll();
     }
 
-    public void queryByTitle(String title) {
+    private void queryByTitle(String title) {
         currentTitleCondition = title;
         String like = "%" + title + "%";
         QueryBuilder<LinkEntity> queryBuilder = entityDao.queryBuilder();
@@ -51,16 +86,17 @@ public class LinkEntityPresenter {
         presenting_list = queryBuilder.where(titleProperty.like(like)).list();
     }
 
-    public int delete(LinkEntity entity) {
+    private int delete(LinkEntity entity) {
         int position = presenting_list.indexOf(entity);
         presenting_list.remove(entity);
         entityDao.delete(entity);
         return position;
     }
 
-    public void insert(LinkEntity entity) {
+    private void insert(LinkEntity entity) {
         entityDao.insert(entity);
-        presenting_list.add(entity);
+        if (presenting_list != null)
+            presenting_list.add(entity);
     }
 
     /**
@@ -68,7 +104,7 @@ public class LinkEntityPresenter {
      *
      * @param entity updated LinkEntity
      */
-    public void update(LinkEntity entity) {
+    private void update(LinkEntity entity) {
         entityDao.update(entity);
         if (!currentTitleCondition.equals("")) {
             queryByTitle(currentTitleCondition);
@@ -80,7 +116,10 @@ public class LinkEntityPresenter {
     }
 
     public int presenting_size() {
-        return presenting_list.size();
+        if (presenting_list != null) {
+            return presenting_list.size();
+        }
+        return 0;
     }
 
     public List<LinkEntity> getPresenting_list() {
@@ -88,6 +127,9 @@ public class LinkEntityPresenter {
     }
 
     public LinkEntity getEntity(int i) {
-        return presenting_list.get(i);
+        if (presenting_list != null) {
+            return presenting_list.get(i);
+        }
+        return null;
     }
 }

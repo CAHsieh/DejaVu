@@ -28,7 +28,12 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     ContentAdapter() {
         entityPresenter = LinkEntityPresenter.getInstance();
-        entityPresenter.queryAll();
+        new Thread(){
+            @Override
+            public void run() {
+                entityPresenter.doAction(LinkEntityPresenter.ACTION_QUERYALL, null, null);
+            }
+        }.start();
     }
 
     void setOnItemActionListener(OnItemActionListener onItemActionListener) {
@@ -93,9 +98,12 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     @Override
     public void OnTitleSet(LinkEntity entity) {
-
-        entityPresenter.update(entity);
-        notifyDataSetChanged();
+        new Thread(){
+            @Override
+            public void run() {
+                entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE,entity,null);
+            }
+        }.start();
     }
 
     private View.OnClickListener onDeleteClick = (v) -> {
@@ -104,8 +112,12 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         if (onItemActionListener != null)
             onItemActionListener.OnLinkDelete(entity);
 
-        int position = entityPresenter.delete(entity);
-        notifyItemRemoved(position);
+        new Thread(){
+            @Override
+            public void run() {
+                entityPresenter.doAction(LinkEntityPresenter.ACTION_DELETE,entity,null);
+            }
+        }.start();
     };
 
     class ViewHolder extends RecyclerView.ViewHolder {
