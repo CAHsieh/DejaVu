@@ -17,4 +17,6 @@
     <string name="package_name_messenger">com.facebook.orca</string>
     <string name="package_name_line">jp.naver.line.android</string>
     <string name="menu_title_search">search</string>
+    <string name="title_progress_loading">Loading…</string>
+    <string name="msg_progress_parsing_url">Parsing the url content…</string>
 </resources>

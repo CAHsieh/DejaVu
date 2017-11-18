@@ -1,5 +1,6 @@
 package ca.pet.dejavu.View;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -29,6 +30,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
+import com.leocardz.link.preview.library.LinkPreviewCallback;
+import com.leocardz.link.preview.library.SourceContent;
+import com.leocardz.link.preview.library.TextCrawler;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -52,6 +56,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private LinkEntity newData = null;
     private LinkEntity currentSelectLink = null;
+
+    private ProgressDialog progressDialog = null;
+    private TextCrawler textCrawler = null;
 
     private LinkEntityPresenter entityPresenter = null;
     private ContentAdapter adapter = null;
@@ -82,17 +89,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         service.init(getApplicationContext());
         entityPresenter = LinkEntityPresenter.getInstance();
 
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
         adapter = new ContentAdapter();
         adapter.setOnItemActionListener(this);
-
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_content);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -108,9 +115,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 entityPresenter.doAction(LinkEntityPresenter.ACTION_INSERT, newData, null);
 
                 if (0 == text.indexOf("https://youtu.be") || 0 == text.indexOf("https://www.youtube.com/")) {
+                    progressDialog = ProgressDialog.show(this, getString(R.string.title_progress_loading), getString(R.string.msg_progress_parsing_url));
                     String ytDesUrl = "https://www.youtube.com/oembed?url=" + text + "&format=json";
                     JsonObjectRequest ytDesReq = new JsonObjectRequest(ytDesUrl, successListener, errorListener);
                     Volley.newRequestQueue(this).add(ytDesReq);
+                } else if (text.contains("http://") || text.contains("https://")) {
+                    String url = text.substring(text.indexOf("http"));
+                    newData.setLink(url);
+                    textCrawler = new TextCrawler();
+                    textCrawler.makePreview(linkPreviewCallback, url);
                 } else {
                     adapter.notifyDataSetChanged();
                     TitleDialog titleDialog = new TitleDialog(newData);
@@ -132,7 +145,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStop() {
         super.onStop();
+        if (progressDialog != null)
+            progressDialog.dismiss();
         EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (textCrawler != null) {
+            textCrawler.cancel();
+        }
     }
 
     @Override
@@ -219,12 +242,87 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private View.OnClickListener onNavigationIconClick = (v) -> openDrawer();
-
-
-    private void openDrawer() {
-        ((DrawerLayout) findViewById(R.id.main_drawer)).openDrawer(Gravity.START);
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        //need not to use
+        return false;
     }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        new Thread() {
+            @Override
+            public void run() {
+                entityPresenter.doAction(LinkEntityPresenter.ACTION_QUERYBYTITLE, null, newText);
+            }
+        }.start();
+        return false;
+    }
+
+    private LinkPreviewCallback linkPreviewCallback = new LinkPreviewCallback() {
+        @Override
+        public void onPre() {
+            progressDialog = ProgressDialog.show(MainActivity.this, getString(R.string.title_progress_loading), getString(R.string.msg_progress_parsing_url));
+        }
+
+        @Override
+        public void onPos(SourceContent sourceContent, boolean b) {
+            if (progressDialog != null)
+                progressDialog.dismiss();
+            String imgUrl = null;
+            for (String img : sourceContent.getImages()) {
+                String[] splitStr = img.split("\\.");
+                if (splitStr.length > 0
+                        && (splitStr[splitStr.length - 1].equals("png")
+                        || splitStr[splitStr.length - 1].equals("jpg")
+                        || splitStr[splitStr.length - 1].equals("jpeg"))) {
+                    imgUrl = img;
+                    break;
+                }
+            }
+
+            Log.i(LOG, "title: " + sourceContent.getTitle() + "  thumbnail_url: " + imgUrl);
+            newData.setTitle(sourceContent.getTitle());
+            newData.setThumbnailUrl(imgUrl);
+
+            new Thread() {
+                @Override
+                public void run() {
+                    entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE, newData, null);
+                }
+            }.start();
+        }
+    };
+
+    private Response.Listener<JSONObject> successListener = (response) -> {
+        if (progressDialog != null)
+            progressDialog.dismiss();
+        try {
+            Log.i(LOG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
+            newData.setTitle(response.getString("title"));
+            newData.setThumbnailUrl(response.getString("thumbnail_url"));
+
+            new Thread() {
+                @Override
+                public void run() {
+                    entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE, newData, null);
+                }
+            }.start();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    };
+
+    private Response.ErrorListener errorListener = (error) -> {
+        if (progressDialog != null)
+            progressDialog.dismiss();
+        Log.e(LOG, "JSONObject Update Error.");
+        TitleDialog titleDialog = new TitleDialog(newData);
+        titleDialog.setOnTitleActionCallback(adapter);
+        titleDialog.show(MainActivity.this);
+    };
+
+    private View.OnClickListener onNavigationIconClick = (v) -> openDrawer();
 
     private Toolbar.OnMenuItemClickListener onToolBarItemClick = (item) -> {
         int itemId = item.getItemId();
@@ -257,6 +355,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     };
 
+    private void openDrawer() {
+        ((DrawerLayout) findViewById(R.id.main_drawer)).openDrawer(Gravity.START);
+    }
+
     private boolean isAppInstalled(String packageName) {
         PackageManager pm = getPackageManager();
         try {
@@ -277,46 +379,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             snackbar.setText(message);
             snackbar.show();
         }
-    }
-
-    private Response.Listener<JSONObject> successListener = (response) -> {
-        try {
-            Log.i(LOG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
-            newData.setTitle(response.getString("title"));
-            newData.setThumbnailUrl(response.getString("thumbnail_url"));
-
-            new Thread() {
-                @Override
-                public void run() {
-                    entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE, newData, null);
-                }
-            }.start();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    };
-
-    private Response.ErrorListener errorListener = (error) -> {
-        Log.e(LOG, "JSONObject Update Error.");
-        TitleDialog titleDialog = new TitleDialog(newData);
-        titleDialog.setOnTitleActionCallback(adapter);
-        titleDialog.show(MainActivity.this);
-    };
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        //need not to use
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        new Thread() {
-            @Override
-            public void run() {
-                entityPresenter.doAction(LinkEntityPresenter.ACTION_QUERYBYTITLE, null, newText);
-            }
-        }.start();
-        return false;
     }
 }
