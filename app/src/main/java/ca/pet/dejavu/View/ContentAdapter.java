@@ -1,6 +1,7 @@
 package ca.pet.dejavu.View;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +29,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     ContentAdapter() {
         entityPresenter = LinkEntityPresenter.getInstance();
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
                 entityPresenter.doAction(LinkEntityPresenter.ACTION_QUERYALL, null, null);
@@ -58,6 +59,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         holder.entity = entityPresenter.getEntity(position);
 
         if (holder.entity.getThumbnailUrl() != null && !holder.entity.getThumbnailUrl().equals("")) {
+            Log.i("Glide", "url: " + holder.entity.getThumbnailUrl());
             Glide.with(holder.thumbnail.getContext())
                     .load(holder.entity.getThumbnailUrl())
                     .error(R.drawable.d)//load失敗的Drawable
@@ -98,10 +100,10 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     @Override
     public void OnTitleSet(LinkEntity entity) {
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
-                entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE,entity,null);
+                entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE, entity, null);
             }
         }.start();
     }
@@ -112,10 +114,10 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         if (onItemActionListener != null)
             onItemActionListener.OnLinkDelete(entity);
 
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
-                entityPresenter.doAction(LinkEntityPresenter.ACTION_DELETE,entity,null);
+                entityPresenter.doAction(LinkEntityPresenter.ACTION_DELETE, entity, null);
             }
         }.start();
     };
