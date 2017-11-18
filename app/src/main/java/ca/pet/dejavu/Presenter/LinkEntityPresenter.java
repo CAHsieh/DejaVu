@@ -6,6 +6,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.greendao.Property;
 import org.greenrobot.greendao.query.QueryBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ca.pet.dejavu.Model.DBService;
@@ -36,6 +37,7 @@ public class LinkEntityPresenter {
     private LinkEntityPresenter() {
         DBService service = DBService.getInstance();
         entityDao = service.getLinkEntityDao();
+        presenting_list = new ArrayList<>();
     }
 
     synchronized public static LinkEntityPresenter getInstance() {
@@ -75,7 +77,8 @@ public class LinkEntityPresenter {
     }
 
     private void queryAll() {
-        presenting_list = entityDao.loadAll();
+        Property idProperty = LinkEntityDao.Properties.Id;
+        presenting_list = entityDao.queryBuilder().orderDesc(idProperty).list();
     }
 
     private void queryByTitle(String title) {
@@ -83,7 +86,8 @@ public class LinkEntityPresenter {
         String like = "%" + title + "%";
         QueryBuilder<LinkEntity> queryBuilder = entityDao.queryBuilder();
         Property titleProperty = LinkEntityDao.Properties.Title;
-        presenting_list = queryBuilder.where(titleProperty.like(like)).list();
+        Property idProperty = LinkEntityDao.Properties.Id;
+        presenting_list = queryBuilder.where(titleProperty.like(like)).orderDesc(idProperty).list();
     }
 
     private int delete(LinkEntity entity) {
@@ -96,7 +100,7 @@ public class LinkEntityPresenter {
     private void insert(LinkEntity entity) {
         entityDao.insert(entity);
         if (presenting_list != null)
-            presenting_list.add(entity);
+            presenting_list.add(0, entity);
     }
 
     /**
