@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="des_d">D</string>
+    <string name="dialog_hint">編輯標題</string>
+    <string name="no_content_text">快去加入新的內容吧！</string>
+    <string name="snack_message_change_app_messenger">分享平台更改為Messenger。</string>
+    <string name="snack_message_change_app_line">分享平台更改為Line。</string>
+    <string name="snack_message_not_installed_messenger">手機尚未安裝Messenger！</string>
+    <string name="snack_message_not_installed_line">手機尚未安裝Line！</string>
+    <string name="menu_title_search">搜尋</string>
+    <string name="title_progress_loading">讀取中…</string>
+    <string name="msg_progress_parsing_url">正在分析網址內容…</string>
+</resources>
