@@ -2,6 +2,7 @@ package ca.pet.dejavu.Utils;
 
 /**
  * Created by CAMac on 2017/11/17.
+ * LinkEntityEvent for EventBus
  */
 
 public class LinkEntityEvent {

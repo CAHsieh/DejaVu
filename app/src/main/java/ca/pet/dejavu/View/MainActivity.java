@@ -12,7 +12,6 @@ import android.support.transition.Fade;
 import android.support.transition.Transition;
 import android.support.transition.TransitionManager;
 import android.support.transition.TransitionSet;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -22,7 +21,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.android.volley.Response;
@@ -46,10 +44,10 @@ import ca.pet.dejavu.Presenter.LinkEntityPresenter;
 import ca.pet.dejavu.R;
 import ca.pet.dejavu.Utils.LinkEntityEvent;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, ContentAdapter.OnItemActionListener,
+public class MainActivity extends AppCompatActivity implements ContentAdapter.OnItemActionListener,
         SearchView.OnQueryTextListener {
 
-    private static final String dejavu_url = "https://youtu.be/dv13gl0a-FA";
+    private static final String DEJAVU_URL = "https://youtu.be/dv13gl0a-FA";
     private static final String LOG = "DejaVu";
     private static final String TAG_MESSENGER = "Messenger";
     private static final String TAG_LINE = "Line";
@@ -72,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        Toolbar toolbar = findViewById(R.id.toolbar_main);
 
         toolbar.setNavigationIcon(R.drawable.ic_action_menu);
         toolbar.inflateMenu(R.menu.menu_toolbar_main);
@@ -81,9 +79,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SearchView searchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_item_search).getActionView();
         searchView.setOnQueryTextListener(this);
 
-        sendButton = (FloatingActionButton) findViewById(R.id.fab_d);
-        sendButton.setOnClickListener(this);
-        noContentText = (TextView) findViewById(R.id.txt_no_content);
+        sendButton = findViewById(R.id.fab_d);
+        sendButton.setOnClickListener(onSendClick);
+        noContentText = findViewById(R.id.txt_no_content);
 
         DBService service = DBService.getInstance();
         service.init(getApplicationContext());
@@ -91,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         adapter = new ContentAdapter();
         adapter.setOnItemActionListener(this);
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_content);
+        RecyclerView recyclerView = findViewById(R.id.list_content);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -155,35 +153,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         if (textCrawler != null) {
             textCrawler.cancel();
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        String url = currentSelectLink == null ? dejavu_url : currentSelectLink.getLink();
-
-        if (v.getTag() == null || v.getTag().equals(TAG_MESSENGER)) {
-            //share to messenger
-            if (isAppInstalled(getString(R.string.package_name_messenger))) {
-                ShareLinkContent content = new ShareLinkContent.Builder()
-                        .setContentUrl(Uri.parse(url))
-                        .build();
-                MessageDialog.show(this, content);
-            } else {
-                showSnack(getString(R.string.snack_message_not_installed_messenger));
-            }
-        } else {
-            //share to line
-            if (isAppInstalled(getString(R.string.package_name_line))) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_SEND);
-                intent.setPackage("jp.naver.line.android");
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TEXT, url);
-                startActivity(intent);
-            } else {
-                showSnack(getString(R.string.snack_message_not_installed_line));
-            }
         }
     }
 
@@ -294,6 +263,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+    private View.OnClickListener onSendClick = (v) -> {
+        String url = currentSelectLink == null ? DEJAVU_URL : currentSelectLink.getLink();
+
+        if (v.getTag() == null || v.getTag().equals(TAG_MESSENGER)) {
+            //share to messenger
+            if (isAppInstalled(getString(R.string.package_name_messenger))) {
+                ShareLinkContent content = new ShareLinkContent.Builder()
+                        .setContentUrl(Uri.parse(url))
+                        .build();
+                MessageDialog.show(this, content);
+            } else {
+                showSnack(getString(R.string.snack_message_not_installed_messenger));
+            }
+        } else {
+            //share to line
+            if (isAppInstalled(getString(R.string.package_name_line))) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.setPackage("jp.naver.line.android");
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT, url);
+                startActivity(intent);
+            } else {
+                showSnack(getString(R.string.snack_message_not_installed_line));
+            }
+        }
+    };
+
     private Response.Listener<JSONObject> successListener = (response) -> {
         if (progressDialog != null)
             progressDialog.dismiss();
@@ -348,8 +345,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 transitionSet.setOrdering(TransitionSet.ORDERING_SEQUENTIAL);
                 transitionSet.addTransition(changeBounds).addTransition(fade_in);
 
-                TransitionManager.beginDelayedTransition((ViewGroup) findViewById(R.id.toolbar_main), transitionSet);
-                MenuItemCompat.expandActionView(item);
+                TransitionManager.beginDelayedTransition(findViewById(R.id.toolbar_main), transitionSet);
+                item.expandActionView();
                 break;
         }
         return true;

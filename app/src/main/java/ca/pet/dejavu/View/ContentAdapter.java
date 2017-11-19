@@ -139,12 +139,12 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         ViewHolder(View v) {
             super(v);
             parent = v;
-            title = (TextView) v.findViewById(R.id.content_txt_title);
-            link = (TextView) v.findViewById(R.id.content_txt_link);
-            D = (ImageView) v.findViewById(R.id.content_img_dejavu);
-            thumbnail = (ImageView) v.findViewById(R.id.content_img_thumbnail);
-            edit = (ImageView) v.findViewById(R.id.content_img_edit);
-            delete = (ImageView) v.findViewById(R.id.content_img_delete);
+            title = v.findViewById(R.id.content_txt_title);
+            link = v.findViewById(R.id.content_txt_link);
+            D = v.findViewById(R.id.content_img_dejavu);
+            thumbnail = v.findViewById(R.id.content_img_thumbnail);
+            edit = v.findViewById(R.id.content_img_edit);
+            delete = v.findViewById(R.id.content_img_delete);
 
             parent.setTag(this);
             D.setTag(this);
