@@ -21,6 +21,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.webkit.URLUtil;
 import android.widget.TextView;
 
 import com.android.volley.Response;
@@ -117,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
                     String ytDesUrl = "https://www.youtube.com/oembed?url=" + text + "&format=json";
                     JsonObjectRequest ytDesReq = new JsonObjectRequest(ytDesUrl, successListener, errorListener);
                     Volley.newRequestQueue(this).add(ytDesReq);
-                } else if (text.contains("http://") || text.contains("https://")) {
+                } else if (URLUtil.isValidUrl(text)) {
                     String url = text.substring(text.indexOf("http"));
                     newData.setLink(url);
                     textCrawler = new TextCrawler();
@@ -188,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
 
         switch (action_Id) {
             case LinkEntityModel.ACTION_QUERYALL:
-                if (entityModel.getPresenting_list().size() > 0)
+                if (entityModel.table_size() > 0)
                     noContentText.setVisibility(View.GONE);
                 //fall through
             case LinkEntityModel.ACTION_QUERYBYTITLE:
@@ -362,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
             pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
             return true;
         } catch (PackageManager.NameNotFoundException e) {
-            Log.i(LOG, packageName + " is not installed.");
+            Log.e(LOG, packageName + " is not installed.");
         }
         return false;
     }
