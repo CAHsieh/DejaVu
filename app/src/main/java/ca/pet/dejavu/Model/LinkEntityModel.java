@@ -1,4 +1,4 @@
-package ca.pet.dejavu.Presenter;
+package ca.pet.dejavu.Model;
 
 import android.support.annotation.Nullable;
 
@@ -9,9 +9,9 @@ import org.greenrobot.greendao.query.QueryBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.pet.dejavu.Model.DBService;
-import ca.pet.dejavu.Model.LinkEntity;
-import ca.pet.dejavu.Model.LinkEntityDao;
+import ca.pet.dejavu.Data.DBService;
+import ca.pet.dejavu.Data.LinkEntity;
+import ca.pet.dejavu.Data.LinkEntityDao;
 import ca.pet.dejavu.Utils.LinkEntityEvent;
 
 /**
@@ -19,7 +19,7 @@ import ca.pet.dejavu.Utils.LinkEntityEvent;
  * presenter of LinkEntity
  */
 
-public class LinkEntityPresenter {
+public class LinkEntityModel {
 
     public static final int ACTION_QUERYALL = 0x01;
     public static final int ACTION_QUERYBYTITLE = 0x02;
@@ -27,24 +27,24 @@ public class LinkEntityPresenter {
     public static final int ACTION_UPDATE = 0x04;
     public static final int ACTION_DELETE = 0x05;
 
-    private static LinkEntityPresenter instance = null;
+    private static LinkEntityModel instance = null;
 
     private LinkEntityDao entityDao;
     private List<LinkEntity> presenting_list = null;
 
     private String currentTitleCondition = "";
 
-    private LinkEntityPresenter() {
+    private LinkEntityModel() {
         DBService service = DBService.getInstance();
         entityDao = service.getLinkEntityDao();
         presenting_list = new ArrayList<>();
     }
 
-    synchronized public static LinkEntityPresenter getInstance() {
+    synchronized public static LinkEntityModel getInstance() {
         if (null == instance) {
-            synchronized (LinkEntityPresenter.class) {
+            synchronized (LinkEntityModel.class) {
                 if (null == instance) {
-                    instance = new LinkEntityPresenter();
+                    instance = new LinkEntityModel();
                 }
             }
         }

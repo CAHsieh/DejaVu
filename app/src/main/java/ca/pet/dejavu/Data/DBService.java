@@ -1,4 +1,4 @@
-package ca.pet.dejavu.Model;
+package ca.pet.dejavu.Data;
 
 import android.content.Context;
 

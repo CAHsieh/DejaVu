@@ -1,4 +1,4 @@
-package ca.pet.dejavu.Model;
+package ca.pet.dejavu.Data;
 
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Generated;

@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
-import ca.pet.dejavu.Model.LinkEntity;
+import ca.pet.dejavu.Data.LinkEntity;
 import ca.pet.dejavu.R;
 
 /**

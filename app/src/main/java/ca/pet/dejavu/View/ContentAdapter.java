@@ -10,8 +10,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import ca.pet.dejavu.Model.LinkEntity;
-import ca.pet.dejavu.Presenter.LinkEntityPresenter;
+import ca.pet.dejavu.Data.LinkEntity;
+import ca.pet.dejavu.Model.LinkEntityModel;
 import ca.pet.dejavu.R;
 
 /**
@@ -21,18 +21,18 @@ import ca.pet.dejavu.R;
 
 public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHolder> implements TitleDialog.OnTitleSetCallback {
 
-    private LinkEntityPresenter entityPresenter;
+    private LinkEntityModel entityPresenter;
 
     private OnItemActionListener onItemActionListener;
 
     private ImageView lastSelectedImageView;
 
     ContentAdapter() {
-        entityPresenter = LinkEntityPresenter.getInstance();
+        entityPresenter = LinkEntityModel.getInstance();
         new Thread() {
             @Override
             public void run() {
-                entityPresenter.doAction(LinkEntityPresenter.ACTION_QUERYALL, null, null);
+                entityPresenter.doAction(LinkEntityModel.ACTION_QUERYALL, null, null);
             }
         }.start();
     }
@@ -103,7 +103,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         new Thread() {
             @Override
             public void run() {
-                entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE, entity, null);
+                entityPresenter.doAction(LinkEntityModel.ACTION_UPDATE, entity, null);
             }
         }.start();
     }
@@ -117,7 +117,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         new Thread() {
             @Override
             public void run() {
-                entityPresenter.doAction(LinkEntityPresenter.ACTION_DELETE, entity, null);
+                entityPresenter.doAction(LinkEntityModel.ACTION_DELETE, entity, null);
             }
         }.start();
     };

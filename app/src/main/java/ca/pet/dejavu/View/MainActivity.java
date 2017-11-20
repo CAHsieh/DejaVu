@@ -38,9 +38,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ca.pet.dejavu.Model.DBService;
-import ca.pet.dejavu.Model.LinkEntity;
-import ca.pet.dejavu.Presenter.LinkEntityPresenter;
+import ca.pet.dejavu.Data.DBService;
+import ca.pet.dejavu.Data.LinkEntity;
+import ca.pet.dejavu.Model.LinkEntityModel;
 import ca.pet.dejavu.R;
 import ca.pet.dejavu.Utils.LinkEntityEvent;
 
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
     private ProgressDialog progressDialog = null;
     private TextCrawler textCrawler = null;
 
-    private LinkEntityPresenter entityPresenter = null;
+    private LinkEntityModel entityModel = null;
     private ContentAdapter adapter = null;
 
     private FloatingActionButton sendButton = null;
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
 
         DBService service = DBService.getInstance();
         service.init(getApplicationContext());
-        entityPresenter = LinkEntityPresenter.getInstance();
+        entityModel = LinkEntityModel.getInstance();
 
         adapter = new ContentAdapter();
         adapter.setOnItemActionListener(this);
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
                 newData = new LinkEntity();
                 newData.setLink(text);
                 newData.setTitle(title);
-                entityPresenter.doAction(LinkEntityPresenter.ACTION_INSERT, newData, null);
+                entityModel.doAction(LinkEntityModel.ACTION_INSERT, newData, null);
 
                 if (0 == text.indexOf("https://youtu.be") || 0 == text.indexOf("https://www.youtube.com/")) {
                     progressDialog = ProgressDialog.show(this, getString(R.string.title_progress_loading), getString(R.string.msg_progress_parsing_url));
@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
         if (null != currentSelectLink && currentSelectLink.equals(entity))
             currentSelectLink = null;
 
-        if (entityPresenter.table_size() == 1)
+        if (entityModel.table_size() == 1)
             noContentText.setVisibility(View.VISIBLE);
     }
 
@@ -187,21 +187,21 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
         int tag = event.getTag();
 
         switch (action_Id) {
-            case LinkEntityPresenter.ACTION_QUERYALL:
-                if (entityPresenter.getPresenting_list().size() > 0)
+            case LinkEntityModel.ACTION_QUERYALL:
+                if (entityModel.getPresenting_list().size() > 0)
                     noContentText.setVisibility(View.GONE);
                 //fall through
-            case LinkEntityPresenter.ACTION_QUERYBYTITLE:
+            case LinkEntityModel.ACTION_QUERYBYTITLE:
                 adapter.notifyDataSetChanged();
                 break;
-            case LinkEntityPresenter.ACTION_DELETE:
+            case LinkEntityModel.ACTION_DELETE:
                 if (-1 != tag) {
                     adapter.notifyItemRemoved(tag);
                 } else {
                     adapter.notifyDataSetChanged();
                 }
                 break;
-            case LinkEntityPresenter.ACTION_UPDATE:
+            case LinkEntityModel.ACTION_UPDATE:
                 if (-1 != tag) {
                     adapter.notifyItemChanged(tag);
                 } else {
@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
         new Thread() {
             @Override
             public void run() {
-                entityPresenter.doAction(LinkEntityPresenter.ACTION_QUERYBYTITLE, null, newText);
+                entityModel.doAction(LinkEntityModel.ACTION_QUERYBYTITLE, null, newText);
             }
         }.start();
         return false;
@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
             new Thread() {
                 @Override
                 public void run() {
-                    entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE, newData, null);
+                    entityModel.doAction(LinkEntityModel.ACTION_UPDATE, newData, null);
                 }
             }.start();
         }
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements ContentAdapter.On
             new Thread() {
                 @Override
                 public void run() {
-                    entityPresenter.doAction(LinkEntityPresenter.ACTION_UPDATE, newData, null);
+                    entityModel.doAction(LinkEntityModel.ACTION_UPDATE, newData, null);
                 }
             }.start();
         } catch (JSONException e) {
