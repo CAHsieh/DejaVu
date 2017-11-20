@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">DejaVu</string>
     <string name="facebook_app_id">1736014946433094</string>
+    <string name="tag_messenger">Messenger</string>
+    <string name="tag_line">LINE</string>
     <string name="package_name_messenger">com.facebook.orca</string>
     <string name="package_name_line">jp.naver.line.android</string>
     <string name="des_d">D</string>
