@@ -36,7 +36,7 @@ dependencies {
     compile 'com.android.support:percent:27.0.1'
     testCompile 'junit:junit:4.12'
 
-    compile 'com.facebook.android:facebook-android-sdk:4.28.0'
+    compile 'com.facebook.android:facebook-share:4.28.0'
 
     compile 'org.greenrobot:eventbus:3.1.1'
     compile 'org.greenrobot:greendao:3.2.2'
