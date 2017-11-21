@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         DBService service = DBService.getInstance();
         service.init(getApplicationContext());
         mainPresenter = MainPresenter.getInstance(this);
-//        mainPresenter.addNewUrl("asdfasf","https://youtu.be/dv13gl0a-FA");
 
 
         Toolbar toolbar = findViewById(R.id.toolbar_main);
@@ -75,9 +74,13 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //        mainPresenter.addNewUrl("asdfasf","https://youtu.be/dv13gl0a-FA");
         mainPresenter.queryAll();
-
         Intent intent = getIntent();
         if (intent != null) {
             String action = intent.getAction();
@@ -85,10 +88,21 @@ public class MainActivity extends AppCompatActivity implements IMainView {
             if (Intent.ACTION_SEND.equals(action) && "text/plain".equals(type)) {
                 String text = intent.getStringExtra(Intent.EXTRA_TEXT);
                 String title = intent.getStringExtra(Intent.EXTRA_TITLE);
-
+                if (title == null) {
+                    title = "";
+                }
                 mainPresenter.addNewUrl(title, text);
             }
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (textCrawler != null) {
+            textCrawler.cancel();
+        }
+        System.exit(0);
     }
 
     @Override
@@ -97,15 +111,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         if (progressDialog != null)
             progressDialog.dismiss();
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (textCrawler != null) {
-            textCrawler.cancel();
-        }
-    }
-
+    
     private View.OnClickListener onSendClick = (View v)
             -> mainPresenter.onSendClick(getApplicationContext(), (String) v.getTag());
 
@@ -192,8 +198,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     @Override
     public void showTitleDialog(String originTitle) {
-        @SuppressLint("InflateParams")
-        final View item = LayoutInflater.from(this).inflate(R.layout.dialog_edittitle, null);
+        @SuppressLint("InflateParams") final View item = LayoutInflater.from(this).inflate(R.layout.dialog_edittitle, null);
         if (originTitle != null) {
             ((EditText) item.findViewById(R.id.dialog_edit_title)).setText(originTitle);
         }

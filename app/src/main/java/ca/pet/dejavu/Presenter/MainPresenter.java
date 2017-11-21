@@ -42,6 +42,7 @@ public class MainPresenter implements IMainPresenter {
 
     private LinkEntity newData = null;
     private LinkEntity currentSelectLink = null;
+    private LinkEntity editTitleLink = null;
 
     private MainPresenter(IMainView mainView) {
         this.mainView = mainView;
@@ -89,8 +90,9 @@ public class MainPresenter implements IMainPresenter {
 
     @Override
     public void editTitle(String title) {
-        currentSelectLink.setTitle(title);
-        linkModel.doAction(LinkEntityModel.ACTION_UPDATE, currentSelectLink, null);
+        editTitleLink.setTitle(title);
+        linkModel.doAction(LinkEntityModel.ACTION_UPDATE, editTitleLink, null);
+        editTitleLink = null;
     }
 
     @Override
@@ -116,6 +118,7 @@ public class MainPresenter implements IMainPresenter {
 
     @Override
     public void OnTitleModifyClick(LinkEntity entity) {
+        editTitleLink = entity;
         mainView.showTitleDialog(entity.getTitle());
     }
 
@@ -133,6 +136,10 @@ public class MainPresenter implements IMainPresenter {
     @Override
     public void afterDoAction(int actionId, int tag) {
         switch (actionId) {
+            case LinkEntityModel.ACTION_INSERT:
+                if (linkModel.table_size() > 0)
+                    mainView.displayNoContentTextView(false);
+                break;
             case LinkEntityModel.ACTION_QUERYALL:
                 if (linkModel.table_size() > 0)
                     mainView.displayNoContentTextView(false);

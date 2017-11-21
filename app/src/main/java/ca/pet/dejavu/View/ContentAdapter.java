@@ -47,13 +47,14 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         holder.entity = presenter.getEntity(position);
 
         if (holder.entity.getThumbnailUrl() != null && !holder.entity.getThumbnailUrl().equals("")) {
-            Log.i("Glide", "url: " + holder.entity.getThumbnailUrl());
+            Log.i("Glide", "Id: "+holder.entity.getId()+" url: " + holder.entity.getThumbnailUrl());
             Glide.with(holder.thumbnail.getContext())
                     .load(holder.entity.getThumbnailUrl())
                     .error(R.drawable.d)//load失敗的Drawable
                     .fitCenter()//中心fit, 以原本圖片的長寬為主
                     .into(holder.thumbnail);
         } else {
+            Log.e("Glide", "not show. Id: "+holder.entity.getId()+" url: " + holder.entity.getThumbnailUrl());
             holder.thumbnail.setVisibility(View.GONE);
         }
     }
