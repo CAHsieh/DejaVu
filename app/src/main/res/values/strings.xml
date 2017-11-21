@@ -5,6 +5,8 @@
     <string name="tag_line">LINE</string>
     <string name="package_name_messenger">com.facebook.orca</string>
     <string name="package_name_line">jp.naver.line.android</string>
+    <string name="log_textcrawler_failed">TextCrawler get content failed.</string>
+
     <string name="des_d">D</string>
     <string name="dialog_hint">Edit Title</string>
     <string name="image_description_thumbnail">Image Thumbnail</string>

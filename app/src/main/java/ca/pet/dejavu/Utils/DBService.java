@@ -1,6 +1,9 @@
-package ca.pet.dejavu.Data;
+package ca.pet.dejavu.Utils;
 
-import android.content.Context;
+
+import ca.pet.dejavu.Utils.Table.DaoMaster;
+import ca.pet.dejavu.Utils.Table.DaoSession;
+import ca.pet.dejavu.Utils.Table.LinkEntityDao;
 
 /**
  * Created by CAHSIEH on 2017/10/30.
@@ -15,7 +18,9 @@ public class DBService {
     private DaoSession daoSession;
 
     private DBService() {
-
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MyApplication.getContext(), DB_NAME);
+        DaoMaster daoMaster = new DaoMaster(helper.getWritableDb());
+        daoSession = daoMaster.newSession();
     }
 
     synchronized public static DBService getInstance() {
@@ -29,12 +34,10 @@ public class DBService {
         return instance;
     }
 
-    public void init(Context context) {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, DB_NAME);
-        DaoMaster daoMaster = new DaoMaster(helper.getWritableDb());
-        daoSession = daoMaster.newSession();
-    }
-
+    /**
+     * 獲取LinkEntity的DAO
+     * @return LinkEntityDao
+     */
     public LinkEntityDao getLinkEntityDao() {
         if (null == daoSession) throw new RuntimeException("DaoSession not initial yet.");
         return daoSession.getLinkEntityDao();

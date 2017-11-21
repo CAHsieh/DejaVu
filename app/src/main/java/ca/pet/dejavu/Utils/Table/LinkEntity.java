@@ -1,4 +1,4 @@
-package ca.pet.dejavu.Data;
+package ca.pet.dejavu.Utils.Table;
 
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Generated;
@@ -6,7 +6,7 @@ import org.greenrobot.greendao.annotation.Id;
 
 /**
  * Created by CAHSIEH on 2017/10/29.
- * Data Entity
+ * 用於儲存網頁資料的Table
  */
 
 @Entity

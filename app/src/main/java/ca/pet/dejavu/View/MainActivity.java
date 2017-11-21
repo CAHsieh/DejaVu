@@ -28,10 +28,14 @@ import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
 import com.leocardz.link.preview.library.TextCrawler;
 
-import ca.pet.dejavu.Data.DBService;
 import ca.pet.dejavu.Presenter.MainPresenter;
 import ca.pet.dejavu.R;
 
+/**
+ * View
+ * 內容不可包含Model的使用
+ * 僅透過Presenter做交流
+ */
 public class MainActivity extends AppCompatActivity implements IMainView {
 
     private MainPresenter mainPresenter = null;
@@ -45,15 +49,165 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     private TextView noContentText = null;
     private Snackbar snackbar;
 
+    /**
+     * 初始化presenter及UI元件
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        DBService service = DBService.getInstance();
-        service.init(getApplicationContext());
-        mainPresenter = MainPresenter.getInstance(this);
 
+        mainPresenter = new MainPresenter(this);//註冊Presenter
+        initUI();
+    }
 
+    /**
+     * 列出所有資料並判斷是否有新資料傳入，
+     * 在onStart做避免要跑progressDialog時還沒完成畫面佈局。
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //        mainPresenter.addNewUrl("asdfasf","https://youtu.be/dv13gl0a-FA");
+        mainPresenter.queryAll();
+        Intent intent = getIntent();
+        if (intent != null) {
+            String action = intent.getAction();
+            String type = intent.getType(); //傳入intent的mime type
+            if (Intent.ACTION_SEND.equals(action) && "text/plain".equals(type)) {
+                String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+                String title = intent.getStringExtra(Intent.EXTRA_TITLE);
+                if (title == null) {
+                    title = "";
+                }
+                mainPresenter.addNewUrl(title, text);
+            }
+        }
+    }
+
+    /**
+     * 在Pause階段就把程式殺掉，
+     * 避免APP重複開啟時出現Bug。
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+        if (textCrawler != null) {
+            textCrawler.cancel();
+        }
+        System.exit(0);
+    }
+
+    /**
+     * 顯示snack
+     * @param message 要顯示的訊息
+     */
+    @Override
+    public void showSnack(String message) {
+        if (snackbar == null) {
+            snackbar = Snackbar
+                    .make(findViewById(R.id.list_content), message, Snackbar.LENGTH_SHORT);
+        }
+        if (!snackbar.isShown()) {
+            snackbar.setText(message);
+            snackbar.show();
+        }
+    }
+
+    /**
+     * 顯示ProgressDialog
+     */
+    @Override
+    public void showProgress() {
+        dismissProgress(); //顯示前先確認關閉目前的ProgressDialog(若存在)
+        progressDialog = ProgressDialog.show(this, getString(R.string.title_progress_loading), getString(R.string.msg_progress_parsing_url));
+    }
+
+    /**
+     * 關閉ProgressDialog
+     */
+    @Override
+    public void dismissProgress() {
+        if (progressDialog != null && progressDialog.isShowing())
+            progressDialog.dismiss();
+    }
+
+    /**
+     * 顯示修改標題用Dialog
+     * @param originTitle 原始標題
+     */
+    @Override
+    public void showTitleDialog(String originTitle) {
+        @SuppressLint("InflateParams") final View item = LayoutInflater.from(this).inflate(R.layout.dialog_edittitle, null);
+        if (originTitle != null) {
+            ((EditText) item.findViewById(R.id.dialog_edit_title)).setText(originTitle);
+        }
+
+        new AlertDialog.Builder(this, R.style.AlertDialogCustom)
+                .setView(item)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    String title = ((EditText) item.findViewById(R.id.dialog_edit_title)).getText().toString();
+                    mainPresenter.editTitle(title);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /**
+     * 控制無內容TextView的顯示狀態
+     * @param display true為顯示，false為隱藏。
+     */
+    @Override
+    public void displayNoContentTextView(boolean display) {
+        if (display) {
+            noContentText.setVisibility(View.VISIBLE);
+        } else {
+            noContentText.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * 使用facebook sdk分享網頁資訊
+     * @param content ShareLinkContent
+     */
+    @Override
+    public void showMessengerDialog(ShareLinkContent content) {
+        MessageDialog.show(this, content);
+    }
+
+    /**
+     * 更新recycleView
+     */
+    @Override
+    public void notifyDataSetChanged() {
+        adapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 更新recycleView
+     * 移除用，根據傳入index值來使用有default動畫的方法
+     */
+    @Override
+    public void notifyItemRemoved(int position) {
+        adapter.notifyItemRemoved(position);
+    }
+
+    /**
+     * 更新recycleView
+     * 更新特定內容用，根據傳入index值來使用有default動畫的方法
+     */
+    @Override
+    public void notifyItemChanged(int position) {
+        adapter.notifyItemChanged(position);
+    }
+
+    /**
+     * 初始化UI元件。
+     */
+    private void initUI(){
         Toolbar toolbar = findViewById(R.id.toolbar_main);
 
         toolbar.setNavigationIcon(R.drawable.ic_action_menu);
@@ -75,50 +229,33 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         recyclerView.setAdapter(adapter);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        //        mainPresenter.addNewUrl("asdfasf","https://youtu.be/dv13gl0a-FA");
-        mainPresenter.queryAll();
-        Intent intent = getIntent();
-        if (intent != null) {
-            String action = intent.getAction();
-            String type = intent.getType();
-            if (Intent.ACTION_SEND.equals(action) && "text/plain".equals(type)) {
-                String text = intent.getStringExtra(Intent.EXTRA_TEXT);
-                String title = intent.getStringExtra(Intent.EXTRA_TITLE);
-                if (title == null) {
-                    title = "";
-                }
-                mainPresenter.addNewUrl(title, text);
-            }
-        }
+    /**
+     * 開啟抽屜
+     */
+    private void openDrawer() {
+        ((DrawerLayout) findViewById(R.id.main_drawer)).openDrawer(Gravity.START);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (textCrawler != null) {
-            textCrawler.cancel();
-        }
-        System.exit(0);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (progressDialog != null)
-            progressDialog.dismiss();
-    }
-
+    /**
+     * 傳送按鈕的觸發事件
+     * 使用mainPresenter.onSendClick來進行後續處理
+     */
     private View.OnClickListener onSendClick = (View v)
             -> mainPresenter.onSendClick((String) v.getTag());
 
+    /**
+     * NavigationIcon被點擊時的觸發事件，
+     * 觸發反應為openDrawer。
+     */
     private View.OnClickListener onNavigationIconClick = (v) -> openDrawer();
 
+    /**
+     * ToolBar上按鈕或其內容點擊時的觸發事件。
+     */
     private Toolbar.OnMenuItemClickListener onToolBarItemClick = (item) -> {
         int itemId = item.getItemId();
 
+        //判斷不同的Item
         switch (itemId) {
             case R.id.menu_item_messenger:
                 sendButton.setImageResource(R.drawable.ic_action_send_messenger);
@@ -130,8 +267,10 @@ public class MainActivity extends AppCompatActivity implements IMainView {
                 sendButton.setTag(getString(R.string.tag_line));
                 showSnack(getString(R.string.snack_message_change_app_line));
                 break;
-            case R.id.menu_item_search:
+            case R.id.menu_item_search: // 點擊SearchView
 
+                //自訂SearchView場景變換的動畫
+                //簡易版本。
                 Transition changeBounds = new ChangeBounds();
                 changeBounds.setDuration(100);
                 Transition fade_in = new Fade(Fade.IN);
@@ -141,83 +280,9 @@ public class MainActivity extends AppCompatActivity implements IMainView {
                 transitionSet.addTransition(changeBounds).addTransition(fade_in);
 
                 TransitionManager.beginDelayedTransition(findViewById(R.id.toolbar_main), transitionSet);
-                item.expandActionView();
+                item.expandActionView();//切換至輸入狀態。
                 break;
         }
         return true;
     };
-
-    private void openDrawer() {
-        ((DrawerLayout) findViewById(R.id.main_drawer)).openDrawer(Gravity.START);
-    }
-
-    @Override
-    public void showSnack(String message) {
-        if (snackbar == null) {
-            snackbar = Snackbar
-                    .make(findViewById(R.id.list_content), message, Snackbar.LENGTH_SHORT);
-        }
-        if (!snackbar.isShown()) {
-            snackbar.setText(message);
-            snackbar.show();
-        }
-    }
-
-    @Override
-    public void showMessageDialog(ShareLinkContent content) {
-        MessageDialog.show(this, content);
-    }
-
-    @Override
-    public void notifyDataSetChanged() {
-        adapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void notifyItemRemoved(int position) {
-        adapter.notifyItemRemoved(position);
-    }
-
-    @Override
-    public void notifyItemChanged(int position) {
-        adapter.notifyItemChanged(position);
-    }
-
-    @Override
-    public void showProgress() {
-        dismissProgress();
-        progressDialog = ProgressDialog.show(this, getString(R.string.title_progress_loading), getString(R.string.msg_progress_parsing_url));
-    }
-
-    @Override
-    public void dismissProgress() {
-        if (progressDialog != null && progressDialog.isShowing())
-            progressDialog.dismiss();
-    }
-
-    @Override
-    public void showTitleDialog(String originTitle) {
-        @SuppressLint("InflateParams") final View item = LayoutInflater.from(this).inflate(R.layout.dialog_edittitle, null);
-        if (originTitle != null) {
-            ((EditText) item.findViewById(R.id.dialog_edit_title)).setText(originTitle);
-        }
-
-        new AlertDialog.Builder(this, R.style.AlertDialogCustom)
-                .setView(item)
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                    String title = ((EditText) item.findViewById(R.id.dialog_edit_title)).getText().toString();
-                    mainPresenter.editTitle(title);
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
-    @Override
-    public void displayNoContentTextView(boolean display) {
-        if (display) {
-            noContentText.setVisibility(View.VISIBLE);
-        } else {
-            noContentText.setVisibility(View.GONE);
-        }
-    }
 }

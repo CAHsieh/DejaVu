@@ -1,10 +1,11 @@
 package ca.pet.dejavu.Presenter;
 
-import ca.pet.dejavu.Data.LinkEntity;
+import ca.pet.dejavu.Utils.Table.LinkEntity;
 
 /**
  * Created by CAMac on 2017/11/20.
  * MainPresenter interface
+ * 定義需實現的MainPresenter的接口方法
  */
 
 public interface IMainPresenter {

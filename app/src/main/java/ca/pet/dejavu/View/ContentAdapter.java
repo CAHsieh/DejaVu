@@ -10,13 +10,14 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import ca.pet.dejavu.Data.LinkEntity;
+import ca.pet.dejavu.Utils.Table.LinkEntity;
 import ca.pet.dejavu.Presenter.MainPresenter;
 import ca.pet.dejavu.R;
 
 /**
  * Created by CAHSIEH on 2017/10/29.
  * Adapter of RecycleView
+ * 用於顯示網頁資料
  */
 
 public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHolder>{
@@ -38,14 +39,15 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.title.setText(presenter.getEntity(position).getTitle());
-        holder.link.setText(presenter.getEntity(position).getLink());
+        holder.title.setText(presenter.getEntity(position).getTitle());//設置標題
+        holder.link.setText(presenter.getEntity(position).getLink());//設置網址
         holder.D.setOnClickListener(mClickAction);
         holder.parent.setOnClickListener(mClickAction);
         holder.edit.setOnClickListener(onEditClick);
         holder.delete.setOnClickListener(onDeleteClick);
         holder.entity = presenter.getEntity(position);
 
+        //若有縮圖內容則使用Glide library將其顯示
         if (holder.entity.getThumbnailUrl() != null && !holder.entity.getThumbnailUrl().equals("")) {
             Log.i("Glide", "Id: "+holder.entity.getId()+" url: " + holder.entity.getThumbnailUrl());
             Glide.with(holder.thumbnail.getContext())
@@ -64,6 +66,10 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         return presenter.getPresentingSize();
     }
 
+    /**
+     * 點擊選取
+     * 呼叫present.OnLinkSelected來保留/取消目前選取的內容。
+     */
     private View.OnClickListener mClickAction = (v) -> {
 
         if (lastSelectedImageView != null)
@@ -79,11 +85,19 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         presenter.OnLinkSelected(viewHolder.entity);
     };
 
+    /**
+     * 編輯標題
+     * 呼叫presenter.OnTitleModifyClick並傳入要修改標題的實體。
+     */
     private View.OnClickListener onEditClick = (v) -> {
         ViewHolder viewHolder = (ViewHolder) v.getTag();
         presenter.OnTitleModifyClick(viewHolder.entity);
     };
 
+    /**
+     * 刪除資料
+     * 呼叫presenter.OnLinkDelete並傳入要刪除的實體。
+     */
     private View.OnClickListener onDeleteClick = (v) -> {
 
         LinkEntity entity = ((ViewHolder) v.getTag()).entity;
@@ -114,6 +128,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
             edit = v.findViewById(R.id.content_img_edit);
             delete = v.findViewById(R.id.content_img_delete);
 
+            //將viewholder作為tag放入元件中。
             parent.setTag(this);
             D.setTag(this);
             edit.setTag(this);
