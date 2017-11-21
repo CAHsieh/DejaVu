@@ -1,12 +1,10 @@
 package ca.pet.dejavu.Model;
 
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import org.greenrobot.greendao.Property;
 import org.greenrobot.greendao.query.QueryBuilder;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ca.pet.dejavu.Data.DBService;

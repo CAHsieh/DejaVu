@@ -28,9 +28,10 @@ import ca.pet.dejavu.View.MainActivity;
 
 /**
  * Created by CAMac on 2017/11/20.
+ * Presenter of MainActivity
  */
 
-public class MainPresenter implements IMainPresenter {
+public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextListener {
 
     private static final String LOG_TAG = "DejaVu";
     private static final String DEJAVU_URL = "https://youtu.be/dv13gl0a-FA";
@@ -61,6 +62,37 @@ public class MainPresenter implements IMainPresenter {
     }
 
     @Override
+    public void afterDoAction(int actionId, int tag) {
+        switch (actionId) {
+            case LinkEntityModel.ACTION_INSERT:
+                if (linkModel.table_size() > 0)
+                    mainView.displayNoContentTextView(false);
+                break;
+            case LinkEntityModel.ACTION_QUERYALL:
+                if (linkModel.table_size() > 0)
+                    mainView.displayNoContentTextView(false);
+                //fall through
+            case LinkEntityModel.ACTION_QUERYBYTITLE:
+                mainView.notifyDataSetChanged();
+                break;
+            case LinkEntityModel.ACTION_DELETE:
+                if (-1 != tag) {
+                    mainView.notifyItemRemoved(tag);
+                } else {
+                    mainView.notifyDataSetChanged();
+                }
+                break;
+            case LinkEntityModel.ACTION_UPDATE:
+                if (-1 != tag) {
+                    mainView.notifyItemChanged(tag);
+                } else {
+                    mainView.notifyDataSetChanged();
+                }
+                break;
+        }
+    }
+
+    @Override
     public void queryAll() {
         linkModel.doAction(LinkEntityModel.ACTION_QUERYALL, null, "");
     }
@@ -86,6 +118,17 @@ public class MainPresenter implements IMainPresenter {
             mainView.notifyDataSetChanged();
             mainView.showTitleDialog(title);
         }
+    }
+
+    @Override
+    public LinkEntity getEntity(int position) {
+        //todo 改為非回傳entity.
+        return linkModel.getEntity(position);
+    }
+
+    @Override
+    public int getPresentingSize() {
+        return linkModel.presenting_size();
     }
 
     @Override
@@ -123,53 +166,6 @@ public class MainPresenter implements IMainPresenter {
     }
 
     @Override
-    public LinkEntity getEntity(int position) {
-        //todo 改為非回傳entity.
-        return linkModel.getEntity(position);
-    }
-
-    @Override
-    public int getPresentingSize() {
-        return linkModel.presenting_size();
-    }
-
-    @Override
-    public void afterDoAction(int actionId, int tag) {
-        switch (actionId) {
-            case LinkEntityModel.ACTION_INSERT:
-                if (linkModel.table_size() > 0)
-                    mainView.displayNoContentTextView(false);
-                break;
-            case LinkEntityModel.ACTION_QUERYALL:
-                if (linkModel.table_size() > 0)
-                    mainView.displayNoContentTextView(false);
-                //fall through
-            case LinkEntityModel.ACTION_QUERYBYTITLE:
-                mainView.notifyDataSetChanged();
-                break;
-            case LinkEntityModel.ACTION_DELETE:
-                if (-1 != tag) {
-                    mainView.notifyItemRemoved(tag);
-                } else {
-                    mainView.notifyDataSetChanged();
-                }
-                break;
-            case LinkEntityModel.ACTION_UPDATE:
-                if (-1 != tag) {
-                    mainView.notifyItemChanged(tag);
-                } else {
-                    mainView.notifyDataSetChanged();
-                }
-                break;
-        }
-    }
-
-    @Override
-    public SearchView.OnQueryTextListener getOnQueryTextListener() {
-        return searchViewQueryListener;
-    }
-
-    @Override
     public void onSendClick(Context context, String tag) {
         assert context != null;
         context = context.getApplicationContext();
@@ -198,6 +194,18 @@ public class MainPresenter implements IMainPresenter {
                 mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
             }
         }
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        //need not to use
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        linkModel.doAction(LinkEntityModel.ACTION_QUERYBYTITLE, null, newText);
+        return false;
     }
 
     private boolean isAppInstalled(Context context, String packageName) {
@@ -259,18 +267,4 @@ public class MainPresenter implements IMainPresenter {
         }
     };
 
-
-    private SearchView.OnQueryTextListener searchViewQueryListener = new SearchView.OnQueryTextListener() {
-        @Override
-        public boolean onQueryTextSubmit(String query) {
-            //need not to use
-            return false;
-        }
-
-        @Override
-        public boolean onQueryTextChange(String newText) {
-            linkModel.doAction(LinkEntityModel.ACTION_QUERYBYTITLE, null, newText);
-            return false;
-        }
-    };
 }

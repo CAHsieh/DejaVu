@@ -29,7 +29,6 @@ import com.facebook.share.widget.MessageDialog;
 import com.leocardz.link.preview.library.TextCrawler;
 
 import ca.pet.dejavu.Data.DBService;
-import ca.pet.dejavu.Data.LinkEntity;
 import ca.pet.dejavu.Presenter.MainPresenter;
 import ca.pet.dejavu.R;
 
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         toolbar.setNavigationOnClickListener(onNavigationIconClick);
         toolbar.setOnMenuItemClickListener(onToolBarItemClick);
         SearchView searchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_item_search).getActionView();
-        searchView.setOnQueryTextListener(mainPresenter.getOnQueryTextListener());
+        searchView.setOnQueryTextListener(mainPresenter);
 
         sendButton = findViewById(R.id.fab_d);
         sendButton.setOnClickListener(onSendClick);
@@ -111,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         if (progressDialog != null)
             progressDialog.dismiss();
     }
-    
+
     private View.OnClickListener onSendClick = (View v)
             -> mainPresenter.onSendClick(getApplicationContext(), (String) v.getTag());
 
