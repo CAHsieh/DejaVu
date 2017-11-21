@@ -1,6 +1,11 @@
 package ca.pet.dejavu.Model;
 
 import android.support.annotation.Nullable;
+import android.webkit.URLUtil;
+
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.leocardz.link.preview.library.TextCrawler;
 
 import org.greenrobot.greendao.Property;
 import org.greenrobot.greendao.query.QueryBuilder;
@@ -11,6 +16,7 @@ import ca.pet.dejavu.Data.DBService;
 import ca.pet.dejavu.Data.LinkEntity;
 import ca.pet.dejavu.Data.LinkEntityDao;
 import ca.pet.dejavu.Presenter.MainPresenter;
+import ca.pet.dejavu.Utils.MyApplication;
 
 /**
  * Created by CAHSIEH on 2017/11/15.
@@ -39,7 +45,7 @@ public class LinkEntityModel implements ILinkModel {
     }
 
     @Override
-    public synchronized void doAction(int actionId, @Nullable LinkEntity entity, @Nullable String title) {
+    public synchronized int doAction(int actionId, @Nullable LinkEntity entity, @Nullable String title) {
         int position = 0;
         switch (actionId) {
             case ACTION_QUERYALL:
@@ -60,7 +66,7 @@ public class LinkEntityModel implements ILinkModel {
                 break;
         }
 
-        mainPresenter.afterDoAction(actionId, position);
+        return position;
     }
 
     private void queryAll() {
@@ -88,6 +94,20 @@ public class LinkEntityModel implements ILinkModel {
         entityDao.insert(entity);
         if (presenting_list != null)
             presenting_list.add(0, entity);
+
+        String url = entity.getLink();
+
+        if (0 == url.indexOf("https://youtu.be") || 0 == url.indexOf("https://www.youtube.com/")) {
+            String ytDesUrl = "https://www.youtube.com/oembed?url=" + url + "&format=json";
+            JsonObjectRequest ytDesReq = new JsonObjectRequest(ytDesUrl, mainPresenter, mainPresenter);
+            Volley.newRequestQueue(MyApplication.getContext()).add(ytDesReq);
+        } else if (URLUtil.isValidUrl(url)) {
+            url = url.substring(url.indexOf("http"));
+            entity.setLink(url);
+            TextCrawler textCrawler = new TextCrawler();
+            textCrawler.makePreview(mainPresenter, url);
+        }
+
     }
 
     /**

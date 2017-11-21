@@ -10,7 +10,7 @@ import ca.pet.dejavu.Data.LinkEntity;
  */
 
 public interface ILinkModel {
-    void doAction(int action_Id, @Nullable LinkEntity entity, @Nullable String title);
+    int doAction(int action_Id, @Nullable LinkEntity entity, @Nullable String title);
 
     int table_size();
 

@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     }
 
     private View.OnClickListener onSendClick = (View v)
-            -> mainPresenter.onSendClick(getApplicationContext(), (String) v.getTag());
+            -> mainPresenter.onSendClick((String) v.getTag());
 
     private View.OnClickListener onNavigationIconClick = (v) -> openDrawer();
 

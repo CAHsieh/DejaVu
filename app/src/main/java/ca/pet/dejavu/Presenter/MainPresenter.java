@@ -4,34 +4,38 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.webkit.URLUtil;
 
 import com.android.volley.Response;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
+import com.android.volley.VolleyError;
 import com.facebook.share.model.ShareLinkContent;
 import com.leocardz.link.preview.library.LinkPreviewCallback;
 import com.leocardz.link.preview.library.SourceContent;
-import com.leocardz.link.preview.library.TextCrawler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.lang.ref.WeakReference;
 
 import ca.pet.dejavu.Data.LinkEntity;
 import ca.pet.dejavu.Model.ILinkModel;
 import ca.pet.dejavu.Model.LinkEntityModel;
 import ca.pet.dejavu.R;
+import ca.pet.dejavu.Utils.MyApplication;
 import ca.pet.dejavu.View.IMainView;
-import ca.pet.dejavu.View.MainActivity;
 
 /**
  * Created by CAMac on 2017/11/20.
  * Presenter of MainActivity
+ * only for MainActivity
  */
 
-public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextListener {
+public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextListener,
+        Response.Listener<JSONObject>, Response.ErrorListener,
+        LinkPreviewCallback {
 
     private static final String LOG_TAG = "DejaVu";
     private static final String DEJAVU_URL = "https://youtu.be/dv13gl0a-FA";
@@ -62,39 +66,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     }
 
     @Override
-    public void afterDoAction(int actionId, int tag) {
-        switch (actionId) {
-            case LinkEntityModel.ACTION_INSERT:
-                if (linkModel.table_size() > 0)
-                    mainView.displayNoContentTextView(false);
-                break;
-            case LinkEntityModel.ACTION_QUERYALL:
-                if (linkModel.table_size() > 0)
-                    mainView.displayNoContentTextView(false);
-                //fall through
-            case LinkEntityModel.ACTION_QUERYBYTITLE:
-                mainView.notifyDataSetChanged();
-                break;
-            case LinkEntityModel.ACTION_DELETE:
-                if (-1 != tag) {
-                    mainView.notifyItemRemoved(tag);
-                } else {
-                    mainView.notifyDataSetChanged();
-                }
-                break;
-            case LinkEntityModel.ACTION_UPDATE:
-                if (-1 != tag) {
-                    mainView.notifyItemChanged(tag);
-                } else {
-                    mainView.notifyDataSetChanged();
-                }
-                break;
-        }
-    }
-
-    @Override
     public void queryAll() {
-        linkModel.doAction(LinkEntityModel.ACTION_QUERYALL, null, "");
+        new ActionTask(this, LinkEntityModel.ACTION_QUERYALL, null, "").execute(linkModel);
     }
 
     @Override
@@ -102,22 +75,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         newData = new LinkEntity();
         newData.setLink(url);
         newData.setTitle(title);
-        linkModel.doAction(LinkEntityModel.ACTION_INSERT, newData, null);
-
-        if (0 == url.indexOf("https://youtu.be") || 0 == url.indexOf("https://www.youtube.com/")) {
-            mainView.showProgress();
-            String ytDesUrl = "https://www.youtube.com/oembed?url=" + url + "&format=json";
-            JsonObjectRequest ytDesReq = new JsonObjectRequest(ytDesUrl, successListener, errorListener);
-            Volley.newRequestQueue((MainActivity) mainView).add(ytDesReq);
-        } else if (URLUtil.isValidUrl(url)) {
-            url = url.substring(url.indexOf("http"));
-            newData.setLink(url);
-            TextCrawler textCrawler = new TextCrawler();
-            textCrawler.makePreview(linkPreviewCallback, url);
-        } else {
-            mainView.notifyDataSetChanged();
-            mainView.showTitleDialog(title);
-        }
+        new ActionTask(this, LinkEntityModel.ACTION_INSERT, newData, null).execute(linkModel);
     }
 
     @Override
@@ -134,7 +92,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     @Override
     public void editTitle(String title) {
         editTitleLink.setTitle(title);
-        linkModel.doAction(LinkEntityModel.ACTION_UPDATE, editTitleLink, null);
+        new ActionTask(this, LinkEntityModel.ACTION_UPDATE, editTitleLink, null).execute(linkModel);
         editTitleLink = null;
     }
 
@@ -156,7 +114,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             mainView.displayNoContentTextView(true);
         }
 
-        linkModel.doAction(LinkEntityModel.ACTION_DELETE, entity, null);
+        new ActionTask(this, LinkEntityModel.ACTION_DELETE, entity, null).execute(linkModel);
     }
 
     @Override
@@ -166,10 +124,10 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     }
 
     @Override
-    public void onSendClick(Context context, String tag) {
-        assert context != null;
-        context = context.getApplicationContext();
+    public void onSendClick(String tag) {
         String url = currentSelectLink == null ? DEJAVU_URL : currentSelectLink.getLink();
+
+        Context context = MyApplication.getContext();
 
         if (tag == null || tag.equals(context.getString(R.string.tag_messenger))) {
             //share to messenger
@@ -204,7 +162,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        linkModel.doAction(LinkEntityModel.ACTION_QUERYBYTITLE, null, newText);
+        new ActionTask(this, LinkEntityModel.ACTION_QUERYBYTITLE, null, newText).execute(linkModel);
         return false;
     }
 
@@ -219,52 +177,128 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         return false;
     }
 
-    private Response.Listener<JSONObject> successListener = (response) -> {
+    private void afterDoAction(int actionId, int tag) {
+        switch (actionId) {
+            case LinkEntityModel.ACTION_INSERT:
+                if (linkModel.table_size() > 0)
+                    mainView.displayNoContentTextView(false);
+
+                if (!URLUtil.isValidUrl(newData.getLink())) {
+                    mainView.notifyDataSetChanged();
+                    editTitleLink = newData;
+                    mainView.showTitleDialog(newData.getTitle());
+                }
+                break;
+            case LinkEntityModel.ACTION_QUERYALL:
+                if (linkModel.table_size() > 0)
+                    mainView.displayNoContentTextView(false);
+                //fall through
+            case LinkEntityModel.ACTION_QUERYBYTITLE:
+                mainView.notifyDataSetChanged();
+                break;
+            case LinkEntityModel.ACTION_DELETE:
+                if (-1 != tag) {
+                    mainView.notifyItemRemoved(tag);
+                } else {
+                    mainView.notifyDataSetChanged();
+                }
+                break;
+            case LinkEntityModel.ACTION_UPDATE:
+                if (-1 != tag) {
+                    mainView.notifyItemChanged(tag);
+                } else {
+                    mainView.notifyDataSetChanged();
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onResponse(JSONObject response) {
         mainView.dismissProgress();
         try {
             Log.i(LOG_TAG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
             newData.setTitle(response.getString("title"));
             newData.setThumbnailUrl(response.getString("thumbnail_url"));
 
-            linkModel.doAction(LinkEntityModel.ACTION_UPDATE, newData, null);
+            new ActionTask(this, LinkEntityModel.ACTION_UPDATE, newData, null).execute(linkModel);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    };
+    }
 
-    private Response.ErrorListener errorListener = (error) -> {
+    @Override
+    public void onErrorResponse(VolleyError error) {
         mainView.dismissProgress();
         Log.e(LOG_TAG, "JSONObject Update Error.");
+        editTitleLink = newData;
         mainView.showTitleDialog(null);
-    };
+    }
 
-    private LinkPreviewCallback linkPreviewCallback = new LinkPreviewCallback() {
-        @Override
-        public void onPre() {
-            mainView.showProgress();
-        }
+    @Override
+    public void onPre() {
+    }
 
-        @Override
-        public void onPos(SourceContent sourceContent, boolean b) {
-            mainView.dismissProgress();
-            String imgUrl = null;
-            for (String img : sourceContent.getImages()) {
-                String[] splitStr = img.split("\\.");
-                if (splitStr.length > 0
-                        && (splitStr[splitStr.length - 1].equals("png")
-                        || splitStr[splitStr.length - 1].equals("jpg")
-                        || splitStr[splitStr.length - 1].equals("jpeg"))) {
-                    imgUrl = img;
-                    break;
-                }
+    @Override
+    public void onPos(SourceContent sourceContent, boolean b) {
+        mainView.dismissProgress();
+        String imgUrl = null;
+        for (String img : sourceContent.getImages()) {
+            String[] splitStr = img.split("\\.");
+            if (splitStr.length > 0
+                    && (splitStr[splitStr.length - 1].equals("png")
+                    || splitStr[splitStr.length - 1].equals("jpg")
+                    || splitStr[splitStr.length - 1].equals("jpeg"))) {
+                imgUrl = img;
+                break;
             }
-
-            Log.i(LOG_TAG, "title: " + sourceContent.getTitle() + "  thumbnail_url: " + imgUrl);
-            newData.setTitle(sourceContent.getTitle());
-            newData.setThumbnailUrl(imgUrl);
-
-            linkModel.doAction(LinkEntityModel.ACTION_UPDATE, newData, null);
         }
-    };
 
+        Log.i(LOG_TAG, "title: " + sourceContent.getTitle() + "  thumbnail_url: " + imgUrl);
+        newData.setTitle(sourceContent.getTitle());
+        newData.setThumbnailUrl(imgUrl);
+
+        new ActionTask(MainPresenter.this, LinkEntityModel.ACTION_UPDATE, newData, null).execute(linkModel);
+    }
+
+
+    private static class ActionTask extends AsyncTask<ILinkModel, Void, Integer> {
+
+        private WeakReference<MainPresenter> weakPresenter;
+
+        private int actionId;
+        private LinkEntity entity;
+        private String title;
+
+        private ActionTask(MainPresenter presenter, int actionId, LinkEntity entity, String title) {
+            weakPresenter = new WeakReference<>(presenter);
+            this.actionId = actionId;
+            this.entity = entity;
+            this.title = title;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            MainPresenter presenter = weakPresenter.get();
+            if (presenter != null) {
+                presenter.mainView.showProgress();
+            }
+        }
+
+        @Override
+        protected Integer doInBackground(ILinkModel... iModel) {
+            return iModel[0].doAction(actionId, entity, title);
+        }
+
+        @Override
+        protected void onPostExecute(Integer position) {
+            super.onPostExecute(position);
+            MainPresenter presenter = weakPresenter.get();
+            if (presenter != null) {
+                presenter.afterDoAction(actionId, position);
+                presenter.mainView.dismissProgress();
+            }
+        }
+    }
 }

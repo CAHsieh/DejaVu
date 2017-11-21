@@ -1,7 +1,5 @@
 package ca.pet.dejavu.Presenter;
 
-import android.content.Context;
-
 import ca.pet.dejavu.Data.LinkEntity;
 
 /**
@@ -10,8 +8,6 @@ import ca.pet.dejavu.Data.LinkEntity;
  */
 
 public interface IMainPresenter {
-
-    void afterDoAction(int actionId, int tag);
 
     void queryAll();
 
@@ -29,5 +25,5 @@ public interface IMainPresenter {
 
     void OnTitleModifyClick(LinkEntity entity);
 
-    void onSendClick(Context context, String tag);
+    void onSendClick(String tag);
 }
