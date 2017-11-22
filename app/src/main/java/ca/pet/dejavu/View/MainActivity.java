@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     @Override
     public void notifyInsertCompleted() {
-        adapter.offsetSelectPosition();
+        adapter.offsetSelectedPosition();
     }
 
     /**
