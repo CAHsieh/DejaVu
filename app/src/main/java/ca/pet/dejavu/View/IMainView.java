@@ -16,7 +16,6 @@ public interface IMainView {
 
     void dismissProgress();
 
-
     void showTitleDialog(String originTitle);
 
     void displayNoContentTextView(boolean display);

@@ -62,8 +62,9 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 新增網頁資料
+     *
      * @param title 標題
-     * @param url 網址
+     * @param url   網址
      */
     @Override
     public void addNewUrl(String title, String url) {
@@ -75,6 +76,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 取得特定資料
+     *
      * @param position index值
      * @return 該index值的資料
      */
@@ -85,6 +87,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 取得目前顯示的list的資料數量
+     *
      * @return size of list
      */
     @Override
@@ -94,6 +97,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 修改資料標題。
+     *
      * @param title 新的標題。
      */
     @Override
@@ -105,7 +109,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 當項目被選取時的反應
-     * @param entity 被選取的資料
+     *
+     * @param position 被選取的資料
      */
     @Override
     public void onLinkSelected(LinkEntity entity) {
@@ -118,7 +123,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 資料的刪除事件內容
-     * @param entity 要被刪除的資料。
+     *
+     * @param position 要被刪除的資料。
      */
     @Override
     public void onLinkDelete(LinkEntity entity) {
@@ -134,7 +140,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 編輯標題的事件內容
-     * @param entity 要編輯標題的資料
+     *
+     * @param position 要編輯標題的資料
      */
     @Override
     public void onTitleModifyClick(LinkEntity entity) {
@@ -144,6 +151,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 發送的事件內容
+     *
      * @param tag 發送平台
      */
     @Override
@@ -193,6 +201,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * SearchView上的文字更改監聽
+     *
      * @param newText 新的文字內容
      */
     @Override
@@ -203,7 +212,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 用於判斷App是否已安裝
-     * @param context application context
+     *
+     * @param context     application context
      * @param packageName 要判斷的App的package name
      * @return true for is installed.
      */
@@ -220,6 +230,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     /**
      * 執行Table操作後的後續業務
+     *
      * @param actionId 操作ID
      * @param position index值
      */
@@ -271,6 +282,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * Volley的Listener
      * 用於youtube的詳細資訊
      * 查詢成功的callback
+     *
      * @param response 回傳結果
      */
     @Override
@@ -290,6 +302,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * Volley的Listener
      * 用於youtube的詳細資訊
      * 查詢失敗的callback
+     *
      * @param error 錯誤資訊
      */
     @Override
@@ -303,7 +316,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     /**
      * TextCrawler's listener
      * 用於youtube以外的網址。
-     *
+     * <p>
      * 執行前的callback
      * need not to used
      */
@@ -314,8 +327,9 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     /**
      * TextCrawler's listener
      * 用於youtube以外的網址。
-     *
+     * <p>
      * 執行後的callback
+     *
      * @param sourceContent 回傳結果
      */
     @Override
@@ -340,7 +354,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             newData.setThumbnailUrl(imgUrl);
 
             new ActionTask(MainPresenter.this, LinkEntityModel.ACTION_UPDATE, newData, null).execute(linkModel);
-        }else{
+        } else {
             Log.e(LOG_TAG, MyApplication.getContext().getString(R.string.log_textcrawler_failed));
             editTitleLink = newData;
             mainView.showTitleDialog(null);
@@ -384,6 +398,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
         /**
          * 進行資料庫操作
+         *
          * @param iModel interface of LinkEntity model
          * @return position
          */
@@ -396,6 +411,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
          * 後續處理
          * 調用afterDoAction
          * 關閉ProgressDialog
+         *
          * @param position index
          */
         @Override
