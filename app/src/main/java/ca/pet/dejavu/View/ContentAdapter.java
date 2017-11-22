@@ -20,7 +20,7 @@ import ca.pet.dejavu.R;
  * 用於顯示網頁資料
  */
 
-public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHolder>{
+public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHolder> {
 
     private MainPresenter presenter = null;
 
@@ -49,14 +49,15 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
         //若有縮圖內容則使用Glide library將其顯示
         if (holder.entity.getThumbnailUrl() != null && !holder.entity.getThumbnailUrl().equals("")) {
-            Log.i("Glide", "Id: "+holder.entity.getId()+" url: " + holder.entity.getThumbnailUrl());
+            Log.i("Glide", "Id: " + holder.entity.getId() + " url: " + holder.entity.getThumbnailUrl());
             Glide.with(holder.thumbnail.getContext())
                     .load(holder.entity.getThumbnailUrl())
                     .error(R.drawable.d)//load失敗的Drawable
                     .fitCenter()//中心fit, 以原本圖片的長寬為主
+                    .placeholder(R.drawable.d_no_content)
                     .into(holder.thumbnail);
         } else {
-            Log.e("Glide", "not show. Id: "+holder.entity.getId()+" url: " + holder.entity.getThumbnailUrl());
+            Log.e("Glide", "not show. Id: " + holder.entity.getId() + " url: " + holder.entity.getThumbnailUrl());
             holder.thumbnail.setVisibility(View.GONE);
         }
     }
@@ -82,7 +83,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
             lastSelectedImageView = viewHolder.D;
             lastSelectedImageView.setSelected(true);
         }
-        presenter.OnLinkSelected(viewHolder.entity);
+        presenter.onLinkSelected(viewHolder.entity);
     };
 
     /**
@@ -91,7 +92,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
      */
     private View.OnClickListener onEditClick = (v) -> {
         ViewHolder viewHolder = (ViewHolder) v.getTag();
-        presenter.OnTitleModifyClick(viewHolder.entity);
+        presenter.onTitleModifyClick(viewHolder.entity);
     };
 
     /**
@@ -101,7 +102,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
     private View.OnClickListener onDeleteClick = (v) -> {
 
         LinkEntity entity = ((ViewHolder) v.getTag()).entity;
-        presenter.OnLinkDelete(entity);
+        presenter.onLinkDelete(entity);
     };
 
     class ViewHolder extends RecyclerView.ViewHolder {

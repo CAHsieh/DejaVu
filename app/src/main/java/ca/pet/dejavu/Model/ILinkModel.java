@@ -19,4 +19,6 @@ public interface ILinkModel {
     int presenting_size();
 
     LinkEntity getEntity(int i);
+
+    void cancelTextCrawler();
 }

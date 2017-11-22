@@ -35,10 +35,11 @@ public class LinkEntityModel implements ILinkModel {
 
     private LinkEntityDao entityDao;
     private List<LinkEntity> presenting_list = null;
-
     private String currentTitleCondition = "";
 
     private MainPresenter mainPresenter = null;
+
+    private TextCrawler textCrawler = null;
 
     public LinkEntityModel(MainPresenter mainPresenter) {
         DBService service = DBService.getInstance();
@@ -48,9 +49,10 @@ public class LinkEntityModel implements ILinkModel {
 
     /**
      * 用於執行LinkTable操作
+     *
      * @param actionId 操作ID，定義在上方final
-     * @param entity 用於操作的實例，可為null
-     * @param title 用於修改標題時使用，可為null
+     * @param entity   用於操作的實例，可為null
+     * @param title    用於修改標題時使用，可為null
      * @return 操作實例的index值，可用於執行畫面更新。
      */
     @Override
@@ -80,6 +82,7 @@ public class LinkEntityModel implements ILinkModel {
 
     /**
      * 取得Table中的資料數。
+     *
      * @return Table中的資料數
      */
     @Override
@@ -89,6 +92,7 @@ public class LinkEntityModel implements ILinkModel {
 
     /**
      * 取得目前顯示內容的資料數
+     *
      * @return 目前顯示內容的資料數
      */
     @Override
@@ -102,6 +106,7 @@ public class LinkEntityModel implements ILinkModel {
     /**
      * 取得目前顯示內容的第i筆資料，
      * 若目前顯示的list為null則回傳null。
+     *
      * @param i index
      * @return 第i筆資料
      */
@@ -111,6 +116,16 @@ public class LinkEntityModel implements ILinkModel {
             return presenting_list.get(i);
         }
         return null;
+    }
+
+    /**
+     * 若textCrawler還在運作的話將其終止
+     */
+    @Override
+    public void cancelTextCrawler() {
+        if (textCrawler != null) {
+            textCrawler.cancel();
+        }
     }
 
     /**
@@ -124,6 +139,7 @@ public class LinkEntityModel implements ILinkModel {
     /**
      * 傳入標題，列出含此標題的資料，
      * 並以ID降冪排序。
+     *
      * @param title 用於查詢的標題
      */
     private void queryByTitle(String title) {
@@ -137,6 +153,7 @@ public class LinkEntityModel implements ILinkModel {
 
     /**
      * 刪除指定資料
+     *
      * @param entity 要刪除的資料
      * @return 刪除資料在list中的位置
      */
@@ -149,6 +166,7 @@ public class LinkEntityModel implements ILinkModel {
 
     /**
      * 新增資料
+     *
      * @param entity 要新增的資料
      */
     private void insert(LinkEntity entity) {
@@ -168,7 +186,7 @@ public class LinkEntityModel implements ILinkModel {
             //其餘網址使用TextCrawler library查詢
             url = url.substring(url.indexOf("http"));
             entity.setLink(url);
-            TextCrawler textCrawler = new TextCrawler();
+            textCrawler = new TextCrawler();
             textCrawler.makePreview(mainPresenter, url);
         }
 

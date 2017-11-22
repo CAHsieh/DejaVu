@@ -108,7 +108,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param entity 被選取的資料
      */
     @Override
-    public void OnLinkSelected(LinkEntity entity) {
+    public void onLinkSelected(LinkEntity entity) {
         if (entity.equals(currentSelectLink)) {
             currentSelectLink = null;
             return;
@@ -121,7 +121,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param entity 要被刪除的資料。
      */
     @Override
-    public void OnLinkDelete(LinkEntity entity) {
+    public void onLinkDelete(LinkEntity entity) {
         if (null != currentSelectLink && currentSelectLink.equals(entity))
             currentSelectLink = null;
 
@@ -137,7 +137,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param entity 要編輯標題的資料
      */
     @Override
-    public void OnTitleModifyClick(LinkEntity entity) {
+    public void onTitleModifyClick(LinkEntity entity) {
         editTitleLink = entity;
         mainView.showTitleDialog(entity.getTitle());
     }
@@ -175,6 +175,11 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
             }
         }
+    }
+
+    @Override
+    public void cancelTextCrawler() {
+        linkModel.cancelTextCrawler();
     }
 
     /**
