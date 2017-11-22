@@ -2,10 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ca.pet.dejavu">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
-    <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled"
-        android:value="false"/>
+    <meta-data
+        android:name="com.facebook.sdk.AutoLogAppEventsEnabled"
+        android:value="false" />
 
     <application
         android:name=".Utils.MyApplication"
@@ -16,9 +17,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
 
-        <activity android:name=".View.MainActivity">
+        <activity
+            android:name=".View.MainActivity"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

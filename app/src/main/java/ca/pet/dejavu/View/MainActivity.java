@@ -26,8 +26,8 @@ import android.widget.TextView;
 
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
-import com.leocardz.link.preview.library.TextCrawler;
 
+import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.Presenter.MainPresenter;
 import ca.pet.dejavu.R;
 
@@ -38,13 +38,12 @@ import ca.pet.dejavu.R;
  */
 public class MainActivity extends AppCompatActivity implements IMainView {
 
-    private MainPresenter mainPresenter = null;
+    private IMainPresenter mainPresenter = null;
 
-    private ProgressDialog progressDialog = null;
-    private TextCrawler textCrawler = null;
-
+    private Intent newDataIntent;
     private ContentAdapter adapter = null;
 
+    private ProgressDialog progressDialog = null;
     private FloatingActionButton sendButton = null;
     private TextView noContentText = null;
     private Snackbar snackbar;
@@ -70,7 +69,11 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         super.onStart();
         //        mainPresenter.addNewUrl("asdfasf","https://youtu.be/dv13gl0a-FA");
         mainPresenter.queryAll();
-        Intent intent = getIntent();
+
+        //newDataIntent只有在先開啟過再分享進來時才會有內容
+        //newDataIntent無內容的話可能代表是第一次分享進來，此時getIntent會有內容。
+        //若兩者皆沒內容，代表是直接開啟App
+        Intent intent = newDataIntent == null ? getIntent() : newDataIntent;
         if (intent != null) {
             String action = intent.getAction();
             String type = intent.getType(); //傳入intent的mime type
@@ -80,14 +83,27 @@ public class MainActivity extends AppCompatActivity implements IMainView {
                 if (title == null) {
                     title = "";
                 }
+                newDataIntent = null;
                 mainPresenter.addNewUrl(title, text);
             }
         }
     }
 
     /**
-     * 在Pause階段就把程式殺掉，
-     * 避免APP重複開啟時出現Bug。
+     * launchMode使用singleTask
+     * 當在開啟狀態有新的分享進來時
+     * 會跑此段來接收新的Intent
+     *
+     * @param intent new intent
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        newDataIntent = intent;
+    }
+
+    /**
+     * 檢查progressDialog狀態
      */
     @Override
     protected void onPause() {
@@ -95,14 +111,12 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         if (progressDialog != null) {
             progressDialog.dismiss();
         }
-        if (textCrawler != null) {
-            textCrawler.cancel();
-        }
-        System.exit(0);
+        mainPresenter.cancelTextCrawler();
     }
 
     /**
      * 顯示snack
+     *
      * @param message 要顯示的訊息
      */
     @Override
@@ -137,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     /**
      * 顯示修改標題用Dialog
+     *
      * @param originTitle 原始標題
      */
     @Override
@@ -158,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     /**
      * 控制無內容TextView的顯示狀態
+     *
      * @param display true為顯示，false為隱藏。
      */
     @Override
@@ -171,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     /**
      * 使用facebook sdk分享網頁資訊
+     *
      * @param content ShareLinkContent
      */
     @Override
@@ -207,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     /**
      * 初始化UI元件。
      */
-    private void initUI(){
+    private void initUI() {
         Toolbar toolbar = findViewById(R.id.toolbar_main);
 
         toolbar.setNavigationIcon(R.drawable.ic_action_menu);
@@ -215,13 +232,13 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         toolbar.setNavigationOnClickListener(onNavigationIconClick);
         toolbar.setOnMenuItemClickListener(onToolBarItemClick);
         SearchView searchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_item_search).getActionView();
-        searchView.setOnQueryTextListener(mainPresenter);
+        searchView.setOnQueryTextListener((MainPresenter) mainPresenter);
 
         sendButton = findViewById(R.id.fab_d);
         sendButton.setOnClickListener(onSendClick);
         noContentText = findViewById(R.id.txt_no_content);
 
-        adapter = new ContentAdapter(mainPresenter);
+        adapter = new ContentAdapter((MainPresenter) mainPresenter);
         RecyclerView recyclerView = findViewById(R.id.list_content);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
