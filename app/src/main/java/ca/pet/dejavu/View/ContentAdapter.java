@@ -10,8 +10,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import ca.pet.dejavu.Utils.Table.LinkEntity;
-import ca.pet.dejavu.Presenter.MainPresenter;
+import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.R;
 
 /**
@@ -22,12 +21,13 @@ import ca.pet.dejavu.R;
 
 public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHolder> {
 
-    private MainPresenter presenter = null;
+    private IMainPresenter presenter = null;
 
-    private ImageView lastSelectedImageView;
+    private int lastSelectedPosition;
 
-    ContentAdapter(MainPresenter presenter) {
+    ContentAdapter(IMainPresenter presenter) {
         this.presenter = presenter;
+        lastSelectedPosition = -1;
     }
 
     @Override
@@ -39,26 +39,35 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+
+        //re-initial status
+        holder.thumbnail.setVisibility(View.VISIBLE);
+        holder.D.setSelected(false);
         holder.title.setText(presenter.getEntity(position).getTitle());//設置標題
         holder.link.setText(presenter.getEntity(position).getLink());//設置網址
+
         holder.D.setOnClickListener(mClickAction);
         holder.parent.setOnClickListener(mClickAction);
         holder.edit.setOnClickListener(onEditClick);
         holder.delete.setOnClickListener(onDeleteClick);
-        holder.entity = presenter.getEntity(position);
+
 
         //若有縮圖內容則使用Glide library將其顯示
-        if (holder.entity.getThumbnailUrl() != null && !holder.entity.getThumbnailUrl().equals("")) {
-            Log.i("Glide", "Id: " + holder.entity.getId() + " url: " + holder.entity.getThumbnailUrl());
+        if (presenter.getEntity(position).getThumbnailUrl() != null && !presenter.getEntity(position).getThumbnailUrl().equals("")) {
+            Log.i("Glide", "Id: " + presenter.getEntity(position).getId() + " url: " + presenter.getEntity(position).getThumbnailUrl());
             Glide.with(holder.thumbnail.getContext())
-                    .load(holder.entity.getThumbnailUrl())
+                    .load(presenter.getEntity(position).getThumbnailUrl())
                     .error(R.drawable.d)//load失敗的Drawable
                     .fitCenter()//中心fit, 以原本圖片的長寬為主
-                    .placeholder(R.drawable.d_no_content)
                     .into(holder.thumbnail);
         } else {
-            Log.e("Glide", "not show. Id: " + holder.entity.getId() + " url: " + holder.entity.getThumbnailUrl());
+            Log.e("Glide", "not show. Id: " + presenter.getEntity(position).getId());
             holder.thumbnail.setVisibility(View.GONE);
+        }
+
+        //滑動回到有選取的項目
+        if (position == lastSelectedPosition) {
+            holder.D.setSelected(true);
         }
     }
 
@@ -67,23 +76,28 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         return presenter.getPresentingSize();
     }
 
+    public void offsetSelectPosition() {
+        if (lastSelectedPosition != -1) {
+            lastSelectedPosition++;
+            notifyDataSetChanged();
+        }
+    }
+
     /**
      * 點擊選取
      * 呼叫present.OnLinkSelected來保留/取消目前選取的內容。
      */
     private View.OnClickListener mClickAction = (v) -> {
 
-        if (lastSelectedImageView != null)
-            lastSelectedImageView.setSelected(false);
-
         ViewHolder viewHolder = (ViewHolder) v.getTag();
-        if (viewHolder.D.equals(lastSelectedImageView)) {
-            lastSelectedImageView = null;
+
+        if (viewHolder.getAdapterPosition() == lastSelectedPosition) {
+            lastSelectedPosition = -1;
         } else {
-            lastSelectedImageView = viewHolder.D;
-            lastSelectedImageView.setSelected(true);
+            lastSelectedPosition = viewHolder.getAdapterPosition();
         }
-        presenter.onLinkSelected(viewHolder.entity);
+
+        presenter.onLinkSelected(viewHolder.getAdapterPosition());
     };
 
     /**
@@ -92,7 +106,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
      */
     private View.OnClickListener onEditClick = (v) -> {
         ViewHolder viewHolder = (ViewHolder) v.getTag();
-        presenter.onTitleModifyClick(viewHolder.entity);
+        presenter.onTitleModifyClick(viewHolder.getAdapterPosition());
     };
 
     /**
@@ -101,8 +115,8 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
      */
     private View.OnClickListener onDeleteClick = (v) -> {
 
-        LinkEntity entity = ((ViewHolder) v.getTag()).entity;
-        presenter.onLinkDelete(entity);
+        ViewHolder viewHolder = (ViewHolder) v.getTag();
+        presenter.onLinkDelete(viewHolder.getAdapterPosition());
     };
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -116,8 +130,6 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         ImageView thumbnail;
         ImageView edit;
         ImageView delete;
-
-        LinkEntity entity;
 
         ViewHolder(View v) {
             super(v);

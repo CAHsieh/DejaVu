@@ -27,4 +27,6 @@ public interface IMainView {
     void notifyItemRemoved(int position);
 
     void notifyItemChanged(int position);
+
+    void notifyInsertCompleted();
 }

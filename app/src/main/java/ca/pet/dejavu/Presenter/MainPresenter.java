@@ -113,12 +113,14 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param position 被選取的資料
      */
     @Override
-    public void onLinkSelected(LinkEntity entity) {
+    public void onLinkSelected(int position) {
+        LinkEntity entity = getEntity(position);
         if (entity.equals(currentSelectLink)) {
             currentSelectLink = null;
             return;
         }
         currentSelectLink = entity;
+        mainView.notifyDataSetChanged();
     }
 
     /**
@@ -127,7 +129,10 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param position 要被刪除的資料。
      */
     @Override
-    public void onLinkDelete(LinkEntity entity) {
+    public void onLinkDelete(int position) {
+
+        LinkEntity entity = getEntity(position);
+
         if (null != currentSelectLink && currentSelectLink.equals(entity))
             currentSelectLink = null;
 
@@ -144,9 +149,9 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param position 要編輯標題的資料
      */
     @Override
-    public void onTitleModifyClick(LinkEntity entity) {
-        editTitleLink = entity;
-        mainView.showTitleDialog(entity.getTitle());
+    public void onTitleModifyClick(int position) {
+        editTitleLink = getEntity(position);
+        mainView.showTitleDialog(editTitleLink.getTitle());
     }
 
     /**
@@ -247,6 +252,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                     editTitleLink = newData;
                     mainView.showTitleDialog(newData.getTitle());
                 }
+                mainView.notifyInsertCompleted();
                 break;
             case LinkEntityModel.ACTION_QUERYALL:
                 //Query的後續：判斷NoContentTextView是否需要開啟

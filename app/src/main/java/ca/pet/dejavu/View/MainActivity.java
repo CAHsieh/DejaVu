@@ -221,6 +221,11 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         adapter.notifyItemChanged(position);
     }
 
+    @Override
+    public void notifyInsertCompleted() {
+        adapter.offsetSelectPosition();
+    }
+
     /**
      * 初始化UI元件。
      */
@@ -238,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         sendButton.setOnClickListener(onSendClick);
         noContentText = findViewById(R.id.txt_no_content);
 
-        adapter = new ContentAdapter((MainPresenter) mainPresenter);
+        adapter = new ContentAdapter(mainPresenter);
         RecyclerView recyclerView = findViewById(R.id.list_content);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);

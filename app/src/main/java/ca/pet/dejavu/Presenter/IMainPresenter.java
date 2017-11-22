@@ -20,11 +20,11 @@ public interface IMainPresenter {
 
     void editTitle(String title);
 
-    void onLinkSelected(LinkEntity entity);
+    void onLinkSelected(int position);
 
-    void onLinkDelete(LinkEntity entity);
+    void onLinkDelete(int position);
 
-    void onTitleModifyClick(LinkEntity entity);
+    void onTitleModifyClick(int position);
 
     void onSendClick(String tag);
 
