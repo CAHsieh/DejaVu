@@ -23,4 +23,7 @@
     <string name="menu_title_search">search</string>
     <string name="title_progress_loading">Loading…</string>
     <string name="msg_progress_parsing_url">Parsing the url content…</string>
+    <string name="navigation_title_uri">URI</string>
+    <string name="navigation_title_image">Image</string>
+    <string name="navigation_title_settings">Settings</string>
 </resources>
