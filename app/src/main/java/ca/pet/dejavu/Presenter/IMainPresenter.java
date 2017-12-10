@@ -1,6 +1,6 @@
 package ca.pet.dejavu.Presenter;
 
-import ca.pet.dejavu.Utils.Table.LinkEntity;
+import ca.pet.dejavu.Utils.Table.DataEntity;
 
 /**
  * Created by CAMac on 2017/11/20.
@@ -10,11 +10,13 @@ import ca.pet.dejavu.Utils.Table.LinkEntity;
 
 public interface IMainPresenter {
 
+    void setQueryType(int type);
+
     void queryAll();
 
     void addNewUrl(String title, String url);
 
-    LinkEntity getEntity(int position);
+    DataEntity getEntity(int position);
 
     int getPresentingSize();
 

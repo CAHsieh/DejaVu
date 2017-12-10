@@ -10,23 +10,28 @@ import org.greenrobot.greendao.annotation.Id;
  */
 
 @Entity
-public class LinkEntity {
+public class DataEntity {
 
     @Id(autoincrement = true)
     private Long Id;
+    private Long parent_Id;
 
+    private int type;
     private String title;
-    private String link;
+    private String uri;
     private String thumbnailUrl;
-    @Generated(hash = 2103337338)
-    public LinkEntity(Long Id, String title, String link, String thumbnailUrl) {
+    @Generated(hash = 883337684)
+    public DataEntity(Long Id, Long parent_Id, int type, String title, String uri,
+            String thumbnailUrl) {
         this.Id = Id;
+        this.parent_Id = parent_Id;
+        this.type = type;
         this.title = title;
-        this.link = link;
+        this.uri = uri;
         this.thumbnailUrl = thumbnailUrl;
     }
-    @Generated(hash = 1585243722)
-    public LinkEntity() {
+    @Generated(hash = 1892108943)
+    public DataEntity() {
     }
     public Long getId() {
         return this.Id;
@@ -34,17 +39,29 @@ public class LinkEntity {
     public void setId(Long Id) {
         this.Id = Id;
     }
+    public Long getParent_Id() {
+        return this.parent_Id;
+    }
+    public void setParent_Id(Long parent_Id) {
+        this.parent_Id = parent_Id;
+    }
+    public int getType() {
+        return this.type;
+    }
+    public void setType(int type) {
+        this.type = type;
+    }
     public String getTitle() {
         return this.title;
     }
     public void setTitle(String title) {
         this.title = title;
     }
-    public String getLink() {
-        return this.link;
+    public String getUri() {
+        return this.uri;
     }
-    public void setLink(String link) {
-        this.link = link;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
     public String getThumbnailUrl() {
         return this.thumbnailUrl;
@@ -52,5 +69,7 @@ public class LinkEntity {
     public void setThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
     }
+
+
 
 }

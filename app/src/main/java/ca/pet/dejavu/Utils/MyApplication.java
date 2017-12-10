@@ -1,8 +1,10 @@
 package ca.pet.dejavu.Utils;
 
-import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
+
+import java.lang.ref.WeakReference;
 
 /**
  * Created by CAMac on 2017/11/21.
@@ -11,16 +13,24 @@ import android.content.Context;
 
 public class MyApplication extends Application {
 
-    @SuppressLint("StaticFieldLeak")
-    private static Context context;
+    private static WeakReference<MyApplication> mApplication;
+
 
     public static Context getContext() {
-        return context;
+        assert mApplication != null;
+        MyApplication application = mApplication.get();
+        return application.getApplicationContext();
+    }
+
+    public static SharedPreferences getSharedPreferences() {
+        assert mApplication != null;
+        Context context = mApplication.get().getApplicationContext();
+        return context.getSharedPreferences(SPConst.SP_NAME, Context.MODE_PRIVATE);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        context = getApplicationContext();
+        mApplication = new WeakReference<>(this);
     }
 }

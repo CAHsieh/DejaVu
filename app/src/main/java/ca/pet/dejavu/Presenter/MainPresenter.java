@@ -20,11 +20,11 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 
-import ca.pet.dejavu.Utils.Table.LinkEntity;
-import ca.pet.dejavu.Model.ILinkModel;
-import ca.pet.dejavu.Model.LinkEntityModel;
+import ca.pet.dejavu.Model.DataEntityModel;
+import ca.pet.dejavu.Model.IDataModel;
 import ca.pet.dejavu.R;
 import ca.pet.dejavu.Utils.MyApplication;
+import ca.pet.dejavu.Utils.Table.DataEntity;
 import ca.pet.dejavu.View.IMainView;
 
 /**
@@ -41,15 +41,20 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     private static final String DEJAVU_URL = "https://youtu.be/dv13gl0a-FA";
 
     private IMainView mainView;
-    private ILinkModel linkModel;
+    private IDataModel dataModel;
 
-    private LinkEntity newData = null;
-    private LinkEntity currentSelectLink = null;
-    private LinkEntity editTitleLink = null;
+    private DataEntity newData = null;
+    private DataEntity currentSelectLink = null;
+    private DataEntity editTitleLink = null;
 
     public MainPresenter(IMainView mainView) {
         this.mainView = mainView;
-        linkModel = new LinkEntityModel(this); //註冊Model
+        dataModel = new DataEntityModel(this); //註冊Model
+    }
+
+    @Override
+    public void setQueryType(int type) {
+        dataModel.setQueryType(type);
     }
 
     /**
@@ -57,7 +62,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public void queryAll() {
-        new ActionTask(this, LinkEntityModel.ACTION_QUERYALL, null, "").execute(linkModel);
+        new ActionTask(this, DataEntityModel.ACTION_QUERYALL, null, "").execute(dataModel);
     }
 
     /**
@@ -68,10 +73,10 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public void addNewUrl(String title, String url) {
-        newData = new LinkEntity();
-        newData.setLink(url);
+        newData = new DataEntity();
+        newData.setUri(url);
         newData.setTitle(title);
-        new ActionTask(this, LinkEntityModel.ACTION_INSERT, newData, null).execute(linkModel);
+        new ActionTask(this, DataEntityModel.ACTION_INSERT, newData, null).execute(dataModel);
     }
 
     /**
@@ -81,8 +86,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @return 該index值的資料
      */
     @Override
-    public LinkEntity getEntity(int position) {
-        return linkModel.getEntity(position);
+    public DataEntity getEntity(int position) {
+        return dataModel.getEntity(position);
     }
 
     /**
@@ -92,7 +97,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public int getPresentingSize() {
-        return linkModel.presenting_size();
+        return dataModel.presenting_size();
     }
 
     /**
@@ -103,7 +108,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     @Override
     public void editTitle(String title) {
         editTitleLink.setTitle(title);
-        new ActionTask(this, LinkEntityModel.ACTION_UPDATE, editTitleLink, null).execute(linkModel);
+        new ActionTask(this, DataEntityModel.ACTION_UPDATE, editTitleLink, null).execute(dataModel);
         editTitleLink = null;
     }
 
@@ -114,7 +119,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public void onLinkSelected(int position) {
-        LinkEntity entity = getEntity(position);
+        DataEntity entity = getEntity(position);
         if (entity.equals(currentSelectLink)) {
             currentSelectLink = null;
             return;
@@ -131,16 +136,16 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     @Override
     public void onLinkDelete(int position) {
 
-        LinkEntity entity = getEntity(position);
+        DataEntity entity = getEntity(position);
 
         if (null != currentSelectLink && currentSelectLink.equals(entity))
             currentSelectLink = null;
 
-        if (linkModel.table_size() == 1) {
+        if (dataModel.presenting_size() == 1) {
             mainView.displayNoContentTextView(true);
         }
 
-        new ActionTask(this, LinkEntityModel.ACTION_DELETE, entity, null).execute(linkModel);
+        new ActionTask(this, DataEntityModel.ACTION_DELETE, entity, null).execute(dataModel);
     }
 
     /**
@@ -161,7 +166,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public void onSendClick(String tag) {
-        String url = currentSelectLink == null ? DEJAVU_URL : currentSelectLink.getLink();
+        String url = currentSelectLink == null ? DEJAVU_URL : currentSelectLink.getUri();
 
         Context context = MyApplication.getContext();
 
@@ -192,7 +197,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
     @Override
     public void cancelTextCrawler() {
-        linkModel.cancelTextCrawler();
+        dataModel.cancelTextCrawler();
     }
 
     /**
@@ -211,7 +216,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public boolean onQueryTextChange(String newText) {
-        new ActionTask(this, LinkEntityModel.ACTION_QUERYBYTITLE, null, newText).execute(linkModel);
+        new ActionTask(this, DataEntityModel.ACTION_QUERYBYTITLE, null, newText).execute(dataModel);
         return false;
     }
 
@@ -241,29 +246,29 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     private void afterDoAction(int actionId, int position) {
         switch (actionId) {
-            case LinkEntityModel.ACTION_INSERT:
+            case DataEntityModel.ACTION_INSERT:
                 //新增的後續：判斷NoContentTextView是否需要開啟
                 //以及若傳入的內容非正確網址格式，則需要自行添加標題。
-                if (linkModel.table_size() > 0)
+                if (dataModel.presenting_size() > 0)
                     mainView.displayNoContentTextView(false);
 
-                if (!URLUtil.isValidUrl(newData.getLink())) {
+                if (!URLUtil.isValidUrl(newData.getUri())) {
                     mainView.notifyDataSetChanged();
                     editTitleLink = newData;
                     mainView.showTitleDialog(newData.getTitle());
                 }
                 mainView.notifyInsertCompleted();
                 break;
-            case LinkEntityModel.ACTION_QUERYALL:
+            case DataEntityModel.ACTION_QUERYALL:
                 //Query的後續：判斷NoContentTextView是否需要開啟
                 //及通知畫面更新
-                if (linkModel.table_size() > 0)
+                if (dataModel.presenting_size() > 0)
                     mainView.displayNoContentTextView(false);
                 //fall through
-            case LinkEntityModel.ACTION_QUERYBYTITLE:
+            case DataEntityModel.ACTION_QUERYBYTITLE:
                 mainView.notifyDataSetChanged();
                 break;
-            case LinkEntityModel.ACTION_DELETE:
+            case DataEntityModel.ACTION_DELETE:
                 //刪除的後續：通知畫面更新。
                 //若index有值則使用有動畫的方法。
                 if (-1 != position) {
@@ -272,7 +277,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                     mainView.notifyDataSetChanged();
                 }
                 break;
-            case LinkEntityModel.ACTION_UPDATE:
+            case DataEntityModel.ACTION_UPDATE:
                 //更新的後續：通知畫面更新。
                 //若index有值則使用有動畫的方法。
                 if (-1 != position) {
@@ -298,7 +303,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             newData.setTitle(response.getString("title"));
             newData.setThumbnailUrl(response.getString("thumbnail_url"));
 
-            new ActionTask(this, LinkEntityModel.ACTION_UPDATE, newData, null).execute(linkModel);
+            new ActionTask(this, DataEntityModel.ACTION_UPDATE, newData, null).execute(dataModel);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -359,7 +364,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             newData.setTitle(sourceContent.getTitle());
             newData.setThumbnailUrl(imgUrl);
 
-            new ActionTask(MainPresenter.this, LinkEntityModel.ACTION_UPDATE, newData, null).execute(linkModel);
+            new ActionTask(MainPresenter.this, DataEntityModel.ACTION_UPDATE, newData, null).execute(dataModel);
         } else {
             Log.e(LOG_TAG, MyApplication.getContext().getString(R.string.log_textcrawler_failed));
             editTitleLink = newData;
@@ -371,7 +376,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     /**
      * AsyncTask for Table Action.
      */
-    private static class ActionTask extends AsyncTask<ILinkModel, Void, Integer> {
+    private static class ActionTask extends AsyncTask<IDataModel, Void, Integer> {
 
         /**
          * 使用WeakReference來避免memory leak
@@ -379,10 +384,10 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         private WeakReference<MainPresenter> weakPresenter;
 
         private int actionId;
-        private LinkEntity entity;
+        private DataEntity entity;
         private String title;
 
-        private ActionTask(MainPresenter presenter, int actionId, LinkEntity entity, String title) {
+        private ActionTask(MainPresenter presenter, int actionId, DataEntity entity, String title) {
             weakPresenter = new WeakReference<>(presenter);
             this.actionId = actionId;
             this.entity = entity;
@@ -405,11 +410,11 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         /**
          * 進行資料庫操作
          *
-         * @param iModel interface of LinkEntity model
+         * @param iModel interface of DataEntity model
          * @return position
          */
         @Override
-        protected Integer doInBackground(ILinkModel... iModel) {
+        protected Integer doInBackground(IDataModel... iModel) {
             return iModel[0].doAction(actionId, entity, title);
         }
 

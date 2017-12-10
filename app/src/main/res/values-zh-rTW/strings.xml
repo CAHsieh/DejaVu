@@ -2,7 +2,7 @@
 <resources>
     <string name="des_d">D</string>
     <string name="dialog_hint">編輯標題</string>
-    <string name="no_content_text">快去加入新的內容吧！</string>
+    <string name="no_content_text">沒有內容。</string>
     <string name="snack_message_change_app_messenger">分享平台更改為Messenger。</string>
     <string name="snack_message_change_app_line">分享平台更改為Line。</string>
     <string name="snack_message_not_installed_messenger">手機尚未安裝Messenger！</string>

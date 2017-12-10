@@ -3,19 +3,22 @@ package ca.pet.dejavu.View;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.transition.ChangeBounds;
 import android.support.transition.Fade;
 import android.support.transition.Transition;
 import android.support.transition.TransitionManager;
 import android.support.transition.TransitionSet;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
@@ -27,9 +30,15 @@ import android.widget.TextView;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
 
+import org.jsoup.Connection;
+
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.Presenter.MainPresenter;
 import ca.pet.dejavu.R;
+import ca.pet.dejavu.Utils.MyApplication;
+import ca.pet.dejavu.Utils.SPConst;
+import ca.pet.dejavu.View.Fragment.BaseFragment;
+import ca.pet.dejavu.View.Fragment.ContentFragment;
 
 /**
  * View
@@ -40,11 +49,15 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     private IMainPresenter mainPresenter = null;
 
+    private int currentVisibleType;
+    private BaseFragment currentFragment;
+
     private Intent newDataIntent;
     private ContentAdapter adapter = null;
 
     private ProgressDialog progressDialog = null;
-    private FloatingActionButton sendButton = null;
+    private Toolbar toolbar;
+    private SearchView searchView;
     private TextView noContentText = null;
     private Snackbar snackbar;
 
@@ -77,14 +90,20 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         if (intent != null) {
             String action = intent.getAction();
             String type = intent.getType(); //傳入intent的mime type
-            if (Intent.ACTION_SEND.equals(action) && "text/plain".equals(type)) {
-                String text = intent.getStringExtra(Intent.EXTRA_TEXT);
-                String title = intent.getStringExtra(Intent.EXTRA_TITLE);
-                if (title == null) {
-                    title = "";
+            if (Intent.ACTION_SEND.equals(action)) {
+
+                if ("text/plain".equals(type)) {
+                    String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+                    String title = intent.getStringExtra(Intent.EXTRA_TITLE);
+                    if (title == null) {
+                        title = "";
+                    }
+                    newDataIntent = null;
+                    mainPresenter.addNewUrl(title, text);
+                } else if (type != null && type.contains("image")) {
+                    
                 }
-                newDataIntent = null;
-                mainPresenter.addNewUrl(title, text);
+
             }
         }
     }
@@ -230,25 +249,38 @@ public class MainActivity extends AppCompatActivity implements IMainView {
      * 初始化UI元件。
      */
     private void initUI() {
-        Toolbar toolbar = findViewById(R.id.toolbar_main);
-
+        toolbar = findViewById(R.id.toolbar_main);
         toolbar.setNavigationIcon(R.drawable.ic_action_menu);
         toolbar.inflateMenu(R.menu.menu_toolbar_main);
         toolbar.setNavigationOnClickListener(onNavigationIconClick);
         toolbar.setOnMenuItemClickListener(onToolBarItemClick);
-        SearchView searchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_item_search).getActionView();
+        searchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_item_search).getActionView();
         searchView.setOnQueryTextListener((MainPresenter) mainPresenter);
 
-        sendButton = findViewById(R.id.fab_d);
-        sendButton.setOnClickListener(onSendClick);
         noContentText = findViewById(R.id.txt_no_content);
 
+        SharedPreferences preferences = MyApplication.getSharedPreferences();
+
+        currentVisibleType = preferences.getInt(SPConst.SP_FIELD_START_TYPE, SPConst.VISIBLE_TYPE_LINK);
+        mainPresenter.setQueryType(currentVisibleType);
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
         adapter = new ContentAdapter(mainPresenter);
-        RecyclerView recyclerView = findViewById(R.id.list_content);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(adapter);
+        ContentFragment contentFragment = ContentFragment.getInstance();
+        contentFragment.setAdapter(adapter);
+        contentFragment.setPresenter(mainPresenter);
+        currentFragment = contentFragment;
+        transaction.add(R.id.main_container, currentFragment, currentFragment.getFragmentTag());
+        transaction.commit();
+
+        NavigationView navigationView = findViewById(R.id.main_navigation);
+        navigationView.setNavigationItemSelectedListener(onNavigationItemSelected);
+        if (SPConst.VISIBLE_TYPE_LINK == currentVisibleType) {
+            navigationView.getMenu().findItem(R.id.navItem_url).setChecked(true);
+        } else {
+            navigationView.getMenu().findItem(R.id.navItem_image).setChecked(true);
+        }
     }
 
     /**
@@ -259,17 +291,37 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     }
 
     /**
-     * 傳送按鈕的觸發事件
-     * 使用mainPresenter.onSendClick來進行後續處理
-     */
-    private View.OnClickListener onSendClick = (View v)
-            -> mainPresenter.onSendClick((String) v.getTag());
-
-    /**
      * NavigationIcon被點擊時的觸發事件，
      * 觸發反應為openDrawer。
      */
     private View.OnClickListener onNavigationIconClick = (v) -> openDrawer();
+
+    /**
+     * NavigationView項目的點擊事件
+     */
+    private NavigationView.OnNavigationItemSelectedListener onNavigationItemSelected = menuItem -> {
+
+        //若SearchView為開啟狀態，將其清除。
+        if (!searchView.isIconified()) {
+            searchView.setIconified(true);
+            toolbar.getMenu().findItem(R.id.menu_item_search).collapseActionView();
+        }
+
+        switch (menuItem.getItemId()) {
+            case R.id.navItem_url:
+                mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_LINK);
+                mainPresenter.queryAll();
+                break;
+            case R.id.navItem_image:
+                mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_IMAGE);
+                mainPresenter.queryAll();
+                break;
+            case R.id.navItem_setting:
+                showSnack("navItem_setting");
+                break;
+        }
+        return true;
+    };
 
     /**
      * ToolBar上按鈕或其內容點擊時的觸發事件。
@@ -280,13 +332,11 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         //判斷不同的Item
         switch (itemId) {
             case R.id.menu_item_messenger:
-                sendButton.setImageResource(R.drawable.ic_action_send_messenger);
-                sendButton.setTag(getString(R.string.tag_messenger));
+                ContentFragment.getInstance().setSendPlatform(itemId);
                 showSnack(getString(R.string.snack_message_change_app_messenger));
                 break;
             case R.id.menu_item_line:
-                sendButton.setImageResource(R.drawable.ic_action_send_line);
-                sendButton.setTag(getString(R.string.tag_line));
+                ContentFragment.getInstance().setSendPlatform(itemId);
                 showSnack(getString(R.string.snack_message_change_app_line));
                 break;
             case R.id.menu_item_search: // 點擊SearchView

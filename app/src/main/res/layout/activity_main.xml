@@ -27,16 +27,21 @@
         </android.support.design.widget.AppBarLayout>
 
 
-        <include layout="@layout/content_layout_main" />
+        <FrameLayout
+            android:id="@+id/main_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
     </LinearLayout>
 
     <android.support.design.widget.NavigationView
+        android:id="@+id/main_navigation"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@drawable/background_navigation"
         android:choiceMode="singleChoice"
         app:headerLayout="@layout/navigation_drawer_header"
+        app:itemBackground="@drawable/background_navigation_item"
         app:menu="@menu/menu_navigation" />
 
 

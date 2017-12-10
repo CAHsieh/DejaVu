@@ -13,7 +13,7 @@
     <string name="image_description_delete">Delete Button</string>
     <string name="image_description_edit">Edit Button</string>
     <string name="image_description_dejavu">Deja Vu</string>
-    <string name="no_content_text">GO TO ADD YOUR FAVORITE URL!</string>
+    <string name="no_content_text">NO CONTENT</string>
     <string name="menu_title_messenger">Messenger</string>
     <string name="menu_title_line">Line</string>
     <string name="snack_message_change_app_messenger">Share app is change to Messenger.</string>

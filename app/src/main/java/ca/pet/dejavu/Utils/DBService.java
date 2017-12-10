@@ -3,7 +3,7 @@ package ca.pet.dejavu.Utils;
 
 import ca.pet.dejavu.Utils.Table.DaoMaster;
 import ca.pet.dejavu.Utils.Table.DaoSession;
-import ca.pet.dejavu.Utils.Table.LinkEntityDao;
+import ca.pet.dejavu.Utils.Table.DataEntityDao;
 
 /**
  * Created by CAHSIEH on 2017/10/30.
@@ -38,9 +38,9 @@ public class DBService {
      * 獲取LinkEntity的DAO
      * @return LinkEntityDao
      */
-    public LinkEntityDao getLinkEntityDao() {
+    public DataEntityDao getDataEntityDao() {
         if (null == daoSession) throw new RuntimeException("DaoSession not initial yet.");
-        return daoSession.getLinkEntityDao();
+        return daoSession.getDataEntityDao();
     }
 
 }
