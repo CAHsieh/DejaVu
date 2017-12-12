@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.transition.ChangeBounds;
@@ -13,7 +12,6 @@ import android.support.transition.Fade;
 import android.support.transition.Transition;
 import android.support.transition.TransitionManager;
 import android.support.transition.TransitionSet;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
@@ -25,12 +23,9 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
-
-import org.jsoup.Connection;
 
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.Presenter.MainPresenter;
@@ -58,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     private ProgressDialog progressDialog = null;
     private Toolbar toolbar;
     private SearchView searchView;
-    private TextView noContentText = null;
     private Snackbar snackbar;
 
     /**
@@ -101,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements IMainView {
                     newDataIntent = null;
                     mainPresenter.addNewUrl(title, text);
                 } else if (type != null && type.contains("image")) {
-                    
                 }
 
             }
@@ -197,10 +190,8 @@ public class MainActivity extends AppCompatActivity implements IMainView {
      */
     @Override
     public void displayNoContentTextView(boolean display) {
-        if (display) {
-            noContentText.setVisibility(View.VISIBLE);
-        } else {
-            noContentText.setVisibility(View.GONE);
+        if (currentFragment.equals(ContentFragment.getInstance())) {
+            ContentFragment.getInstance().setNoContentTextIsDisplay(display);
         }
     }
 
@@ -256,8 +247,6 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         toolbar.setOnMenuItemClickListener(onToolBarItemClick);
         searchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_item_search).getActionView();
         searchView.setOnQueryTextListener((MainPresenter) mainPresenter);
-
-        noContentText = findViewById(R.id.txt_no_content);
 
         SharedPreferences preferences = MyApplication.getSharedPreferences();
 

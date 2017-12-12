@@ -4,16 +4,12 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.transition.ChangeBounds;
-import android.support.transition.Fade;
-import android.support.transition.Transition;
-import android.support.transition.TransitionManager;
-import android.support.transition.TransitionSet;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.R;
@@ -30,6 +26,7 @@ public class ContentFragment extends BaseFragment {
     private IMainPresenter mainPresenter = null;
 
     private FloatingActionButton sendButton = null;
+    private TextView noContentText = null;
 
     private ContentAdapter adapter;
 
@@ -66,6 +63,8 @@ public class ContentFragment extends BaseFragment {
 
         sendButton = view.findViewById(R.id.fab_d);
         sendButton.setOnClickListener(onSendClick);
+
+        noContentText = view.findViewById(R.id.txt_no_content);
     }
 
     /**
@@ -93,6 +92,14 @@ public class ContentFragment extends BaseFragment {
                 sendButton.setImageResource(R.drawable.ic_action_send_line);
                 sendButton.setTag(getString(R.string.tag_line));
                 break;
+        }
+    }
+
+    public void setNoContentTextIsDisplay(boolean display) {
+        if (display) {
+            noContentText.setVisibility(View.VISIBLE);
+        } else {
+            noContentText.setVisibility(View.GONE);
         }
     }
 }
