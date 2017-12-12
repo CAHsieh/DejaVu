@@ -24,6 +24,7 @@ import ca.pet.dejavu.Model.DataEntityModel;
 import ca.pet.dejavu.Model.IDataModel;
 import ca.pet.dejavu.R;
 import ca.pet.dejavu.Utils.MyApplication;
+import ca.pet.dejavu.Utils.SPConst;
 import ca.pet.dejavu.Utils.Table.DataEntity;
 import ca.pet.dejavu.View.IMainView;
 
@@ -76,6 +77,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         newData = new DataEntity();
         newData.setUri(url);
         newData.setTitle(title);
+        newData.setParent_Id(null);
+        newData.setType(SPConst.VISIBLE_TYPE_LINK);
         new ActionTask(this, DataEntityModel.ACTION_INSERT, newData, null).execute(dataModel);
     }
 
