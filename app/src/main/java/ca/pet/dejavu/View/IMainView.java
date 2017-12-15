@@ -28,5 +28,5 @@ public interface IMainView {
 
     void notifyItemChanged(int position);
 
-    void notifyInsertCompleted();
+    void notifyInsertCompleted(int offset);
 }

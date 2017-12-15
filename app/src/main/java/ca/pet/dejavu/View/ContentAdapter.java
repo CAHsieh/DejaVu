@@ -76,9 +76,9 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         return presenter.getPresentingSize();
     }
 
-    void offsetSelectedPosition() {
+    void offsetSelectedPosition(int offset) {
         if (lastSelectedPosition != -1) {
-            lastSelectedPosition++;
+            lastSelectedPosition += offset;
             notifyDataSetChanged();
         }
     }

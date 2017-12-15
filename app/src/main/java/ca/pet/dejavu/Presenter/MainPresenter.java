@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.webkit.URLUtil;
@@ -18,11 +17,11 @@ import com.leocardz.link.preview.library.SourceContent;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.ref.WeakReference;
-
 import ca.pet.dejavu.Model.DataEntityModel;
 import ca.pet.dejavu.Model.IDataModel;
 import ca.pet.dejavu.R;
+import ca.pet.dejavu.Utils.AsyncTask.ImageInsertTask;
+import ca.pet.dejavu.Utils.AsyncTask.NormalActionTask;
 import ca.pet.dejavu.Utils.MyApplication;
 import ca.pet.dejavu.Utils.SPConst;
 import ca.pet.dejavu.Utils.Table.DataEntity;
@@ -63,7 +62,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public void queryAll() {
-        new ActionTask(this, DataEntityModel.ACTION_QUERYALL, null, "").execute(dataModel);
+        new NormalActionTask(this, DataEntityModel.ACTION_QUERYALL, null, "").execute(dataModel);
     }
 
     /**
@@ -79,7 +78,12 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         newData.setTitle(title);
         newData.setParent_Id(null);
         newData.setType(SPConst.VISIBLE_TYPE_LINK);
-        new ActionTask(this, DataEntityModel.ACTION_INSERT, newData, null).execute(dataModel);
+        new NormalActionTask(this, DataEntityModel.ACTION_INSERT, newData, null).execute(dataModel);
+    }
+
+    @Override
+    public void addNewImage(Uri... uris) {
+        new ImageInsertTask(this, DataEntityModel.ACTION_INSERT, uris).execute(dataModel);
     }
 
     /**
@@ -111,7 +115,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     @Override
     public void editTitle(String title) {
         editTitleLink.setTitle(title);
-        new ActionTask(this, DataEntityModel.ACTION_UPDATE, editTitleLink, null).execute(dataModel);
+        new NormalActionTask(this, DataEntityModel.ACTION_UPDATE, editTitleLink, null).execute(dataModel);
         editTitleLink = null;
     }
 
@@ -148,7 +152,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             mainView.displayNoContentTextView(true);
         }
 
-        new ActionTask(this, DataEntityModel.ACTION_DELETE, entity, null).execute(dataModel);
+        new NormalActionTask(this, DataEntityModel.ACTION_DELETE, entity, null).execute(dataModel);
     }
 
     /**
@@ -219,7 +223,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public boolean onQueryTextChange(String newText) {
-        new ActionTask(this, DataEntityModel.ACTION_QUERYBYTITLE, null, newText).execute(dataModel);
+        new NormalActionTask(this, DataEntityModel.ACTION_QUERYBYTITLE, null, newText).execute(dataModel);
         return false;
     }
 
@@ -245,22 +249,28 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * 執行Table操作後的後續業務
      *
      * @param actionId 操作ID
-     * @param position index值
+     * @param tag      insert時的偏移量及其他動作的index值
      */
-    private void afterDoAction(int actionId, int position) {
+    public void afterDoAction(int actionId, int tag) {
         switch (actionId) {
             case DataEntityModel.ACTION_INSERT:
+                //若tag為0代表新增圖片失敗。
+                if (tag == 0) {
+                    mainView.showSnack("Insert new data error.");
+                    break;
+                }
+
                 //新增的後續：判斷NoContentTextView是否需要開啟
                 //以及若傳入的內容非正確網址格式，則需要自行添加標題。
                 if (dataModel.presenting_size() > 0)
                     mainView.displayNoContentTextView(false);
 
-                if (!URLUtil.isValidUrl(newData.getUri())) {
+                if (newData != null && !URLUtil.isValidUrl(newData.getUri())) {
                     mainView.notifyDataSetChanged();
                     editTitleLink = newData;
                     mainView.showTitleDialog(newData.getTitle());
                 }
-                mainView.notifyInsertCompleted();
+                mainView.notifyInsertCompleted(tag);
                 break;
             case DataEntityModel.ACTION_QUERYALL:
                 //Query的後續：判斷NoContentTextView是否需要開啟
@@ -274,8 +284,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             case DataEntityModel.ACTION_DELETE:
                 //刪除的後續：通知畫面更新。
                 //若index有值則使用有動畫的方法。
-                if (-1 != position) {
-                    mainView.notifyItemRemoved(position);
+                if (-1 != tag) {
+                    mainView.notifyItemRemoved(tag);
                 } else {
                     mainView.notifyDataSetChanged();
                 }
@@ -283,13 +293,21 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             case DataEntityModel.ACTION_UPDATE:
                 //更新的後續：通知畫面更新。
                 //若index有值則使用有動畫的方法。
-                if (-1 != position) {
-                    mainView.notifyItemChanged(position);
+                if (-1 != tag) {
+                    mainView.notifyItemChanged(tag);
                 } else {
                     mainView.notifyDataSetChanged();
                 }
                 break;
         }
+    }
+
+    public void showProgress() {
+        mainView.showProgress();
+    }
+
+    public void dismissProgress() {
+        mainView.dismissProgress();
     }
 
     /**
@@ -306,7 +324,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             newData.setTitle(response.getString("title"));
             newData.setThumbnailUrl(response.getString("thumbnail_url"));
 
-            new ActionTask(this, DataEntityModel.ACTION_UPDATE, newData, null).execute(dataModel);
+            new NormalActionTask(this, DataEntityModel.ACTION_UPDATE, newData, null).execute(dataModel);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -367,7 +385,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             newData.setTitle(sourceContent.getTitle());
             newData.setThumbnailUrl(imgUrl);
 
-            new ActionTask(MainPresenter.this, DataEntityModel.ACTION_UPDATE, newData, null).execute(dataModel);
+            new NormalActionTask(MainPresenter.this, DataEntityModel.ACTION_UPDATE, newData, null).execute(dataModel);
         } else {
             Log.e(LOG_TAG, MyApplication.getContext().getString(R.string.log_textcrawler_failed));
             editTitleLink = newData;
@@ -375,67 +393,4 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         }
     }
 
-
-    /**
-     * AsyncTask for Table Action.
-     */
-    private static class ActionTask extends AsyncTask<IDataModel, Void, Integer> {
-
-        /**
-         * 使用WeakReference來避免memory leak
-         */
-        private WeakReference<MainPresenter> weakPresenter;
-
-        private int actionId;
-        private DataEntity entity;
-        private String title;
-
-        private ActionTask(MainPresenter presenter, int actionId, DataEntity entity, String title) {
-            weakPresenter = new WeakReference<>(presenter);
-            this.actionId = actionId;
-            this.entity = entity;
-            this.title = title;
-        }
-
-        /**
-         * 前置作業
-         * 開啟ProgressDialog
-         */
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            MainPresenter presenter = weakPresenter.get();
-            if (presenter != null) {
-                presenter.mainView.showProgress();
-            }
-        }
-
-        /**
-         * 進行資料庫操作
-         *
-         * @param iModel interface of DataEntity model
-         * @return position
-         */
-        @Override
-        protected Integer doInBackground(IDataModel... iModel) {
-            return iModel[0].doAction(actionId, entity, title);
-        }
-
-        /**
-         * 後續處理
-         * 調用afterDoAction
-         * 關閉ProgressDialog
-         *
-         * @param position index
-         */
-        @Override
-        protected void onPostExecute(Integer position) {
-            super.onPostExecute(position);
-            MainPresenter presenter = weakPresenter.get();
-            if (presenter != null) {
-                presenter.afterDoAction(actionId, position);
-                presenter.mainView.dismissProgress();
-            }
-        }
-    }
 }

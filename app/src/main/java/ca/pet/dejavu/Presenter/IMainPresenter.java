@@ -1,5 +1,7 @@
 package ca.pet.dejavu.Presenter;
 
+import android.net.Uri;
+
 import ca.pet.dejavu.Utils.Table.DataEntity;
 
 /**
@@ -15,6 +17,8 @@ public interface IMainPresenter {
     void queryAll();
 
     void addNewUrl(String title, String url);
+
+    void addNewImage(Uri... uris);
 
     DataEntity getEntity(int position);
 

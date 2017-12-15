@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -26,12 +25,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
-import com.bumptech.glide.Glide;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.Presenter.MainPresenter;
@@ -102,17 +99,14 @@ public class MainActivity extends AppCompatActivity implements IMainView {
                     mainPresenter.addNewUrl(title, text);
                 } else if (type.startsWith("image/")) {
                     Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                    //todo
-                    try {
-                        Bitmap bitmap = Glide.with(this).load(uri).asBitmap().into(200, 200).get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
+                    newDataIntent = null;
+                    mainPresenter.addNewImage(uri);
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
                 if (type.startsWith("image/")) {
                     List<Uri> uriList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-                    //todo
+                    newDataIntent = null;
+                    mainPresenter.addNewImage(uriList.toArray(new Uri[uriList.size()]));
                 }
             }
         }
@@ -249,8 +243,8 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     }
 
     @Override
-    public void notifyInsertCompleted() {
-        adapter.offsetSelectedPosition();
+    public void notifyInsertCompleted(int offset) {
+        adapter.offsetSelectedPosition(offset);
     }
 
     /**
