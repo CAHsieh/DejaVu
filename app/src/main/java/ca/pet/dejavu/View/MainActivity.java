@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -24,8 +26,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import com.bumptech.glide.Glide;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.widget.MessageDialog;
+
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.Presenter.MainPresenter;
@@ -84,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         if (intent != null) {
             String action = intent.getAction();
             String type = intent.getType(); //傳入intent的mime type
-            if (Intent.ACTION_SEND.equals(action)) {
+            if (Intent.ACTION_SEND.equals(action) && type != null) {
 
                 if ("text/plain".equals(type)) {
                     String text = intent.getStringExtra(Intent.EXTRA_TEXT);
@@ -94,9 +100,20 @@ public class MainActivity extends AppCompatActivity implements IMainView {
                     }
                     newDataIntent = null;
                     mainPresenter.addNewUrl(title, text);
-                } else if (type != null && type.contains("image")) {
+                } else if (type.startsWith("image/")) {
+                    Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                    //todo
+                    try {
+                        Bitmap bitmap = Glide.with(this).load(uri).asBitmap().into(200, 200).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
                 }
-
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
+                if (type.startsWith("image/")) {
+                    List<Uri> uriList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                    //todo
+                }
             }
         }
     }
