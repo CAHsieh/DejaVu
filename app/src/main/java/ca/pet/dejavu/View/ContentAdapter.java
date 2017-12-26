@@ -86,6 +86,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
         if (viewHolder.getAdapterPosition() == lastSelectedPosition) {
             lastSelectedPosition = -1;
+            viewHolder.D.setSelected(false);
         } else {
             lastSelectedPosition = viewHolder.getAdapterPosition();
         }
