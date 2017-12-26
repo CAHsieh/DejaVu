@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     private IMainPresenter mainPresenter = null;
 
-    private int currentVisibleType;
     private BaseFragment currentFragment;
 
     private Intent newDataIntent;
@@ -77,19 +76,21 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     @Override
     protected void onStart() {
         super.onStart();
-        //        mainPresenter.addNewUrl("asdfasf","https://youtu.be/dv13gl0a-FA");
-        mainPresenter.queryAll();
-
-        //newDataIntent只有在先開啟過再分享進來時才會有內容
-        //newDataIntent無內容的話可能代表是第一次分享進來，此時getIntent會有內容。
-        //若兩者皆沒內容，代表是直接開啟App
         Intent intent = newDataIntent == null ? getIntent() : newDataIntent;
-        if (intent != null) {
+        setIntent(null);
+        if (null == intent || intent.getAction() == null || !intent.getAction().equals(Intent.ACTION_SEND)) {
+            mainPresenter.queryAll();
+        } else {
+            //newDataIntent只有在先開啟過再分享進來時才會有內容
+            //newDataIntent無內容的話可能代表是第一次分享進來，此時getIntent會有內容。
+            //若兩者皆沒內容，代表是直接開啟App
             String action = intent.getAction();
             String type = intent.getType(); //傳入intent的mime type
             if (Intent.ACTION_SEND.equals(action) && type != null) {
 
                 if ("text/plain".equals(type)) {
+                    mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_LINK);
+
                     String text = intent.getStringExtra(Intent.EXTRA_TEXT);
                     String title = intent.getStringExtra(Intent.EXTRA_TITLE);
                     if (title == null) {
@@ -98,17 +99,29 @@ public class MainActivity extends AppCompatActivity implements IMainView {
                     newDataIntent = null;
                     mainPresenter.addNewUrl(title, text);
                 } else if (type.startsWith("image/")) {
+                    mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_IMAGE);
+
                     Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
                     newDataIntent = null;
                     mainPresenter.addNewImage(uri);
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
                 if (type.startsWith("image/")) {
+                    mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_IMAGE);
+
                     List<Uri> uriList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                     newDataIntent = null;
                     mainPresenter.addNewImage(uriList.toArray(new Uri[uriList.size()]));
                 }
             }
+        }
+
+        NavigationView navigationView = findViewById(R.id.main_navigation);
+        navigationView.setNavigationItemSelectedListener(onNavigationItemSelected);
+        if (SPConst.VISIBLE_TYPE_LINK == MyApplication.currentVisibleType) {
+            navigationView.getMenu().findItem(R.id.navItem_url).setChecked(true);
+        } else {
+            navigationView.getMenu().findItem(R.id.navItem_image).setChecked(true);
         }
     }
 
@@ -243,8 +256,8 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     }
 
     @Override
-    public void notifyInsertCompleted(int offset) {
-        adapter.offsetSelectedPosition(offset);
+    public void notifyInsertCompleted() {
+        mainPresenter.queryAll();
     }
 
     /**
@@ -261,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
         SharedPreferences preferences = MyApplication.getSharedPreferences();
 
-        currentVisibleType = preferences.getInt(SPConst.SP_FIELD_START_TYPE, SPConst.VISIBLE_TYPE_LINK);
+        int currentVisibleType = preferences.getInt(SPConst.SP_FIELD_START_TYPE, SPConst.VISIBLE_TYPE_LINK);
         mainPresenter.setQueryType(currentVisibleType);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -273,14 +286,6 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         currentFragment = contentFragment;
         transaction.add(R.id.main_container, currentFragment, currentFragment.getFragmentTag());
         transaction.commit();
-
-        NavigationView navigationView = findViewById(R.id.main_navigation);
-        navigationView.setNavigationItemSelectedListener(onNavigationItemSelected);
-        if (SPConst.VISIBLE_TYPE_LINK == currentVisibleType) {
-            navigationView.getMenu().findItem(R.id.navItem_url).setChecked(true);
-        } else {
-            navigationView.getMenu().findItem(R.id.navItem_image).setChecked(true);
-        }
     }
 
     /**

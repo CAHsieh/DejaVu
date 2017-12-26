@@ -15,6 +15,7 @@ public class MyApplication extends Application {
 
     private static WeakReference<MyApplication> mApplication;
 
+    public static int currentVisibleType;
 
     public static Context getContext() {
         assert mApplication != null;

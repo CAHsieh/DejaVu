@@ -2,8 +2,6 @@ package ca.pet.dejavu.Utils.AsyncTask;
 
 import android.os.AsyncTask;
 
-import java.lang.ref.WeakReference;
-
 import ca.pet.dejavu.Model.DataEntityModel;
 import ca.pet.dejavu.Model.IDataModel;
 import ca.pet.dejavu.Presenter.MainPresenter;
@@ -16,14 +14,14 @@ import ca.pet.dejavu.Utils.Table.DataEntity;
 
 public class NormalActionTask extends AsyncTask<IDataModel, Void, Integer> {
 
-    private WeakReference<MainPresenter> weakPresenter;
+    private MainPresenter presenter;
 
     private int actionId;
     private DataEntity entity;
     private String title;
 
     public NormalActionTask(MainPresenter presenter, int actionId, DataEntity entity, String title) {
-        weakPresenter = new WeakReference<>(presenter);
+        this.presenter = presenter;
         this.actionId = actionId;
         this.entity = entity;
         this.title = title;
@@ -36,7 +34,6 @@ public class NormalActionTask extends AsyncTask<IDataModel, Void, Integer> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        MainPresenter presenter = weakPresenter.get();
         if (presenter != null) {
             presenter.showProgress();
         }
@@ -67,7 +64,6 @@ public class NormalActionTask extends AsyncTask<IDataModel, Void, Integer> {
     @Override
     protected void onPostExecute(Integer position) {
         super.onPostExecute(position);
-        MainPresenter presenter = weakPresenter.get();
         if (presenter != null) {
             presenter.afterDoAction(actionId, position);
             presenter.dismissProgress();

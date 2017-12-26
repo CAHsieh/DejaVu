@@ -55,6 +55,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     @Override
     public void setQueryType(int type) {
         dataModel.setQueryType(type);
+        MyApplication.currentVisibleType = type;
     }
 
     /**
@@ -173,33 +174,13 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public void onSendClick(String tag) {
-        String url = currentSelectLink == null ? DEJAVU_URL : currentSelectLink.getUri();
 
-        Context context = MyApplication.getContext();
-
-        if (tag == null || tag.equals(context.getString(R.string.tag_messenger))) {
-            //share to messenger
-            if (isAppInstalled(context, context.getString(R.string.package_name_messenger))) {
-                ShareLinkContent content = new ShareLinkContent.Builder()
-                        .setContentUrl(Uri.parse(url))
-                        .build();
-                mainView.showMessengerDialog(content);
-            } else {
-                mainView.showSnack(context.getString(R.string.snack_message_not_installed_messenger));
-            }
+        if (SPConst.VISIBLE_TYPE_LINK == MyApplication.currentVisibleType) {
+            sendLink(tag);
         } else {
-            //share to line
-            if (isAppInstalled(context, context.getString(R.string.package_name_line))) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_SEND);
-                intent.setPackage("jp.naver.line.android");
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TEXT, url);
-                context.startActivity(intent);
-            } else {
-                mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
-            }
+            //todo
         }
+
     }
 
     @Override
@@ -225,6 +206,34 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     public boolean onQueryTextChange(String newText) {
         new NormalActionTask(this, DataEntityModel.ACTION_QUERYBYTITLE, null, newText).execute(dataModel);
         return false;
+    }
+
+    private void sendLink(String tag) {
+        String url = currentSelectLink == null ? DEJAVU_URL : currentSelectLink.getUri();
+        Context context = MyApplication.getContext();
+        if (tag == null || tag.equals(context.getString(R.string.tag_messenger))) {
+            //share to messenger
+            if (isAppInstalled(context, context.getString(R.string.package_name_messenger))) {
+                ShareLinkContent content = new ShareLinkContent.Builder()
+                        .setContentUrl(Uri.parse(url))
+                        .build();
+                mainView.showMessengerDialog(content);
+            } else {
+                mainView.showSnack(context.getString(R.string.snack_message_not_installed_messenger));
+            }
+        } else {
+            //share to line
+            if (isAppInstalled(context, context.getString(R.string.package_name_line))) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.setPackage("jp.naver.line.android");
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT, url);
+                context.startActivity(intent);
+            } else {
+                mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
+            }
+        }
     }
 
     /**
@@ -266,11 +275,12 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                     mainView.displayNoContentTextView(false);
 
                 if (newData != null && !URLUtil.isValidUrl(newData.getUri())) {
-                    mainView.notifyDataSetChanged();
+                    mainView.notifyInsertCompleted();
                     editTitleLink = newData;
                     mainView.showTitleDialog(newData.getTitle());
+                } else {
+                    mainView.notifyInsertCompleted();
                 }
-                mainView.notifyInsertCompleted(tag);
                 break;
             case DataEntityModel.ACTION_QUERYALL:
                 //Query的後續：判斷NoContentTextView是否需要開啟
