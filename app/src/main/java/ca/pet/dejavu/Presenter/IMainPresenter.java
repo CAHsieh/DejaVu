@@ -26,9 +26,9 @@ public interface IMainPresenter {
 
     void editTitle(String title);
 
-    void onLinkSelected(int position);
+    void onDataSelected(int position);
 
-    void onLinkDelete(int position);
+    void onDataDelete(int position);
 
     void onTitleModifyClick(int position);
 

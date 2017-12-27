@@ -126,7 +126,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param position 被選取的資料
      */
     @Override
-    public void onLinkSelected(int position) {
+    public void onDataSelected(int position) {
         DataEntity entity = getEntity(position);
         if (entity.equals(currentSelectLink)) {
             currentSelectLink = null;
@@ -142,7 +142,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param position 要被刪除的資料。
      */
     @Override
-    public void onLinkDelete(int position) {
+    public void onDataDelete(int position) {
 
         DataEntity entity = getEntity(position);
 
