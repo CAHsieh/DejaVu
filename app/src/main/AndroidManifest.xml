@@ -3,6 +3,7 @@
     package="ca.pet.dejavu">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <meta-data
         android:name="com.facebook.sdk.AutoLogAppEventsEnabled"
@@ -48,7 +49,7 @@
 
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.gtmc.sonic.fileprovider"
+            android:authorities="ca.pet.dejavu.fileprovider"
 
             android:exported="false"
             android:grantUriPermissions="true">
@@ -56,6 +57,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepath" />
         </provider>
+
+        <provider
+            android:name="com.facebook.FacebookContentProvider"
+            android:authorities="com.facebook.app.FacebookContentProvider1736014946433094"
+            android:exported="true" />
     </application>
 
 </manifest>

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 
 import com.bumptech.glide.Glide;
@@ -70,6 +71,7 @@ public class ImageInsertTask extends NormalActionTask {
                     bitmap.recycle();
 
                     entity.setTitle(file.getName());
+                    entity.setUri(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file).toString());
                     entity.setThumbnailUrl(file.getAbsolutePath());
                     entityDao.update(entity);
 
