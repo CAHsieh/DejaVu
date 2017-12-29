@@ -91,7 +91,8 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
             lastSelectedPosition = viewHolder.getAdapterPosition();
         }
 
-        presenter.onLinkSelected(viewHolder.getAdapterPosition());
+
+        presenter.onDataSelected(viewHolder.getAdapterPosition());
     };
 
     /**
@@ -110,7 +111,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
     private View.OnClickListener onDeleteClick = (v) -> {
 
         ViewHolder viewHolder = (ViewHolder) v.getTag();
-        presenter.onLinkDelete(viewHolder.getAdapterPosition());
+        presenter.onDataDelete(viewHolder.getAdapterPosition());
     };
 
     class ViewHolder extends RecyclerView.ViewHolder {

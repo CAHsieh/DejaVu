@@ -1,11 +1,17 @@
 package ca.pet.dejavu.View;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.transition.ChangeBounds;
@@ -26,7 +32,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
-import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.model.ShareContent;
 import com.facebook.share.widget.MessageDialog;
 
 import java.util.List;
@@ -46,6 +52,8 @@ import ca.pet.dejavu.View.Fragment.ContentFragment;
  */
 public class MainActivity extends AppCompatActivity implements IMainView {
 
+    private static final int PERMISSION_REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 0x101;
+
     private IMainPresenter mainPresenter = null;
 
     private BaseFragment currentFragment;
@@ -61,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     /**
      * 初始化presenter及UI元件
      */
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -161,6 +170,15 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == PERMISSION_REQUEST_CODE_WRITE_EXTERNAL_STORAGE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            mainPresenter.onSendClick(getString(R.string.tag_line));
+        }
+    }
+
     /**
      * 顯示snack
      *
@@ -236,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
      * @param content ShareLinkContent
      */
     @Override
-    public void showMessengerDialog(ShareLinkContent content) {
+    public void showMessengerDialog(ShareContent content) {
         MessageDialog.show(this, content);
     }
 
@@ -269,6 +287,14 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     @Override
     public void notifyInsertCompleted() {
         mainPresenter.queryAll();
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    public void requestPermission() {
+        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                PERMISSION_REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
     }
 
     /**

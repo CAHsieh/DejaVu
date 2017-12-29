@@ -1,9 +1,14 @@
 package ca.pet.dejavu.Presenter;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.MediaStore;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.webkit.URLUtil;
@@ -11,11 +16,17 @@ import android.webkit.URLUtil;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.model.SharePhoto;
+import com.facebook.share.model.SharePhotoContent;
 import com.leocardz.link.preview.library.LinkPreviewCallback;
 import com.leocardz.link.preview.library.SourceContent;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 import ca.pet.dejavu.Model.DataEntityModel;
 import ca.pet.dejavu.Model.IDataModel;
@@ -44,12 +55,15 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     private IDataModel dataModel;
 
     private DataEntity newData = null;
-    private DataEntity currentSelectLink = null;
     private DataEntity editTitleLink = null;
+    private List<DataEntity> currentSelectDataList = null;
+
+    private boolean isMultiSelectMode = false;
 
     public MainPresenter(IMainView mainView) {
         this.mainView = mainView;
         dataModel = new DataEntityModel(this); //註冊Model
+        currentSelectDataList = new ArrayList<>();
     }
 
     @Override
@@ -126,13 +140,25 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param position 被選取的資料
      */
     @Override
-    public void onLinkSelected(int position) {
+    public void onDataSelected(int position) {
         DataEntity entity = getEntity(position);
-        if (entity.equals(currentSelectLink)) {
-            currentSelectLink = null;
-            return;
+
+        if (isMultiSelectMode) {
+            if (currentSelectDataList.contains(entity)) {
+                currentSelectDataList.remove(entity);
+                return;
+            }
+            currentSelectDataList.add(entity);
+        } else {
+            if (currentSelectDataList.contains(entity)) {
+                currentSelectDataList.remove(entity);
+                return;
+            }
+            if (currentSelectDataList.size() > 0) {
+                currentSelectDataList.clear();
+            }
+            currentSelectDataList.add(entity);
         }
-        currentSelectLink = entity;
         mainView.notifyDataSetChanged();
     }
 
@@ -142,12 +168,12 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param position 要被刪除的資料。
      */
     @Override
-    public void onLinkDelete(int position) {
+    public void onDataDelete(int position) {
 
         DataEntity entity = getEntity(position);
 
-        if (null != currentSelectLink && currentSelectLink.equals(entity))
-            currentSelectLink = null;
+        if (currentSelectDataList.contains(entity))
+            currentSelectDataList.remove(entity);
 
         if (dataModel.presenting_size() == 1) {
             mainView.displayNoContentTextView(true);
@@ -178,7 +204,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         if (SPConst.VISIBLE_TYPE_LINK == MyApplication.currentVisibleType) {
             sendLink(tag);
         } else {
-            //todo
+            sendImages(tag);
         }
 
     }
@@ -209,7 +235,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     }
 
     private void sendLink(String tag) {
-        String url = currentSelectLink == null ? DEJAVU_URL : currentSelectLink.getUri();
+        DataEntity currentSelectData = currentSelectDataList.get(0);
+        String url = currentSelectData == null ? DEJAVU_URL : currentSelectData.getUri();
         Context context = MyApplication.getContext();
         if (tag == null || tag.equals(context.getString(R.string.tag_messenger))) {
             //share to messenger
@@ -234,6 +261,84 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
             }
         }
+    }
+
+    private void sendImages(String tag) {
+        Context context = MyApplication.getContext();
+        if (tag == null || tag.equals(context.getString(R.string.tag_messenger))) {
+            //share to messenger
+            if (isAppInstalled(context, context.getString(R.string.package_name_messenger))) {
+                List<SharePhoto> sharePhotos = new ArrayList<>();
+                for (DataEntity entity : currentSelectDataList) {
+                    SharePhoto sharePhoto = new SharePhoto.Builder().setImageUrl(Uri.parse(entity.getUri())).build();
+                    sharePhotos.add(sharePhoto);
+                }
+                SharePhotoContent content = new SharePhotoContent.Builder()
+                        .setPhotos(sharePhotos)
+                        .build();
+
+                mainView.showMessengerDialog(content);
+            } else {
+                mainView.showSnack(context.getString(R.string.snack_message_not_installed_messenger));
+            }
+        } else {
+            //share to line
+            if (!checkPermission()) {
+                return;
+            }
+
+            if (isAppInstalled(context, context.getString(R.string.package_name_line))) {
+                ComponentName componentName = new ComponentName("jp.naver.line.android"
+                        , "jp.naver.line.android.activity.selectchat.SelectChatActivity");
+                Intent intent = new Intent();
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                intent.setComponent(componentName);
+                intent.setType("image/*");
+
+                if (isMultiSelectMode) {
+                    intent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                    ArrayList<Uri> files = new ArrayList<>();
+                    for (DataEntity entity : currentSelectDataList) {
+                        Uri uri;
+                        try {
+                            uri = Uri.parse(MediaStore.Images.Media.insertImage(context.getContentResolver(), entity.getThumbnailUrl(), null, null));
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                            continue;
+                        }
+                        files.add(uri);
+                    }
+                    intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
+                } else {
+                    intent.setAction(Intent.ACTION_SEND);
+                    Uri uri;
+
+                    try {
+                        uri = Uri.parse(MediaStore.Images.Media.insertImage(context.getContentResolver(), currentSelectDataList.get(0).getThumbnailUrl(), null, null));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        mainView.showSnack("Shared Image Error.");
+                        return;
+                    }
+
+                    intent.putExtra(Intent.EXTRA_STREAM, uri);
+                }
+                context.startActivity(intent);
+
+            } else {
+                mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean checkPermission() {
+        Context context = MyApplication.getContext();
+        if (context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            mainView.requestPermission();
+            return false;
+        }
+        return true;
     }
 
     /**

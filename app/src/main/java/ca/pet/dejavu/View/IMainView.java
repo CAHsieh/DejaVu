@@ -1,6 +1,6 @@
 package ca.pet.dejavu.View;
 
-import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.model.ShareContent;
 
 /**
  * Created by CAMac on 2017/11/20.
@@ -20,7 +20,7 @@ public interface IMainView {
 
     void displayNoContentTextView(boolean display);
 
-    void showMessengerDialog(ShareLinkContent content);
+    void showMessengerDialog(ShareContent content);
 
     void notifyDataSetChanged();
 
@@ -29,4 +29,6 @@ public interface IMainView {
     void notifyItemChanged(int position);
 
     void notifyInsertCompleted();
+
+    void requestPermission();
 }
