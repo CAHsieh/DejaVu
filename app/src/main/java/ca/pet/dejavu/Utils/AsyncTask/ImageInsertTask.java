@@ -101,4 +101,20 @@ public class ImageInsertTask extends NormalActionTask {
         }
         return path;
     }
+
+    /**
+     * 後續處理
+     * 調用afterDoAction
+     * 關閉ProgressDialog
+     *
+     * @param position index
+     */
+    @Override
+    protected void onPostExecute(Integer position) {
+        super.onPostExecute(position);
+        if (presenter != null) {
+            presenter.afterDoAction(actionId, position);
+            presenter.dismissProgress();
+        }
+    }
 }

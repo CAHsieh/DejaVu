@@ -330,6 +330,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     @Override
     public void onResponse(JSONObject response) {
         try {
+            dismissProgress();
             Log.i(LOG_TAG, "title: " + response.getString("title") + "  thumbnail_url: " + response.getString("thumbnail_url"));
             newData.setTitle(response.getString("title"));
             newData.setThumbnailUrl(response.getString("thumbnail_url"));
@@ -350,6 +351,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     @Override
     public void onErrorResponse(VolleyError error) {
         Log.e(LOG_TAG, error.getMessage());
+        dismissProgress();
         error.printStackTrace();
         editTitleLink = newData;
         mainView.showTitleDialog(null);
@@ -376,7 +378,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      */
     @Override
     public void onPos(SourceContent sourceContent, boolean b) {
-        mainView.dismissProgress();
+        dismissProgress();
 
         if (sourceContent.isSuccess()) {
             String imgUrl = null;

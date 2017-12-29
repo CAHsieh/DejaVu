@@ -14,9 +14,9 @@ import ca.pet.dejavu.Utils.Table.DataEntity;
 
 public class NormalActionTask extends AsyncTask<IDataModel, Void, Integer> {
 
-    private MainPresenter presenter;
+    MainPresenter presenter;
+    int actionId;
 
-    private int actionId;
     private DataEntity entity;
     private String title;
 
@@ -66,7 +66,8 @@ public class NormalActionTask extends AsyncTask<IDataModel, Void, Integer> {
         super.onPostExecute(position);
         if (presenter != null) {
             presenter.afterDoAction(actionId, position);
-            presenter.dismissProgress();
+            if (actionId != DataEntityModel.ACTION_INSERT)
+                presenter.dismissProgress();
         }
     }
 }
