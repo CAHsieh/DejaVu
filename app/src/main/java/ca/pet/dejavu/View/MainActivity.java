@@ -2,11 +2,9 @@ package ca.pet.dejavu.View;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -44,13 +42,16 @@ import ca.pet.dejavu.Utils.MyApplication;
 import ca.pet.dejavu.Utils.SPConst;
 import ca.pet.dejavu.View.Fragment.BaseFragment;
 import ca.pet.dejavu.View.Fragment.ContentFragment;
+import pub.devrel.easypermissions.AppSettingsDialog;
+import pub.devrel.easypermissions.EasyPermissions;
+import pub.devrel.easypermissions.PermissionRequest;
 
 /**
  * View
  * 內容不可包含Model的使用
  * 僅透過Presenter做交流
  */
-public class MainActivity extends AppCompatActivity implements IMainView {
+public class MainActivity extends AppCompatActivity implements IMainView,EasyPermissions.PermissionCallbacks {
 
     private static final int PERMISSION_REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 0x101;
 
@@ -174,8 +175,21 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == PERMISSION_REQUEST_CODE_WRITE_EXTERNAL_STORAGE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            mainPresenter.onSendClick(getString(R.string.tag_line));
+        EasyPermissions.onRequestPermissionsResult(requestCode,permissions,grantResults,this);
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+        mainPresenter.onSendClick(getString(R.string.tag_line));
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)){
+            new AppSettingsDialog.Builder(this)
+                    .setTitle(R.string.title_permission_ask_again)
+                    .setRationale(R.string.msg_permission_ask_again)
+                    .setThemeResId(R.style.AlertDialogCustom_NoActionBar).build().show();
         }
     }
 
@@ -290,11 +304,15 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     }
 
 
-    @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void requestPermission() {
-        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                PERMISSION_REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
+        EasyPermissions.requestPermissions(new PermissionRequest.Builder(this,
+                PERMISSION_REQUEST_CODE_WRITE_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .setRationale(getString(R.string.msg_permission_line_share))
+                .setPositiveButtonText(R.string.btn_text_next)
+                .setNegativeButtonText(android.R.string.cancel)
+                .setTheme(R.style.AlertDialogCustom_NoActionBar)
+                .build());
     }
 
     /**

@@ -26,4 +26,9 @@
     <string name="navigation_title_uri">URI</string>
     <string name="navigation_title_image">Image</string>
     <string name="navigation_title_settings">Settings</string>
+    <string name="msg_permission_line_share">We can not share images to line without the permission.</string>
+    <string name="btn_text_next">Next</string>
+    <string name="title_permission_ask_again">Permissions Required</string>
+    <string name="msg_permission_ask_again">This app may not work correctly without the requested permissions.
+        Open the app settings screen to modify app permissions.</string>
 </resources>

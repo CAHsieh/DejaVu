@@ -14,4 +14,10 @@
         <item name="android:typeface">monospace</item>
     </style>
 
+    <style name="AlertDialogCustom_NoActionBar" parent="@android:style/Theme.Material.Dialog.NoActionBar">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:textColor">#F7F7F7</item>
+        <item name="android:typeface">monospace</item>
+    </style>
+
 </resources>

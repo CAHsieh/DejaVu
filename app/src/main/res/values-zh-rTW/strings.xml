@@ -10,4 +10,8 @@
     <string name="menu_title_search">搜尋</string>
     <string name="title_progress_loading">讀取中…</string>
     <string name="msg_progress_parsing_url">正在分析傳入內容…</string>
+    <string name="msg_permission_line_share">若無授權我們無法為您分享圖片至Line。</string>
+    <string name="btn_text_next">繼續</string>
+    <string name="title_permission_ask_again">確認權限</string>
+    <string name="msg_permission_ask_again">此功能無法在沒有權限的情況下執行，點擊確認開啟App設定頁面並修改使用權限。</string>
 </resources>

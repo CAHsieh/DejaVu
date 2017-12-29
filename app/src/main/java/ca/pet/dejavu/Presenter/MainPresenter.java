@@ -1,13 +1,11 @@
 package ca.pet.dejavu.Presenter;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.MediaStore;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
@@ -37,6 +35,7 @@ import ca.pet.dejavu.Utils.MyApplication;
 import ca.pet.dejavu.Utils.SPConst;
 import ca.pet.dejavu.Utils.Table.DataEntity;
 import ca.pet.dejavu.View.IMainView;
+import pub.devrel.easypermissions.EasyPermissions;
 
 /**
  * Created by CAMac on 2017/11/20.
@@ -46,7 +45,7 @@ import ca.pet.dejavu.View.IMainView;
  */
 public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextListener,
         Response.Listener<JSONObject>, Response.ErrorListener,
-        LinkPreviewCallback {
+        LinkPreviewCallback{
 
     private static final String LOG_TAG = "DejaVu";
     private static final String DEJAVU_URL = "https://youtu.be/dv13gl0a-FA";
@@ -283,7 +282,10 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             }
         } else {
             //share to line
-            if (!checkPermission()) {
+
+            //check permission
+            if (!EasyPermissions.hasPermissions(MyApplication.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                mainView.requestPermission();
                 return;
             }
 
@@ -329,16 +331,6 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
             }
         }
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean checkPermission() {
-        Context context = MyApplication.getContext();
-        if (context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            mainView.requestPermission();
-            return false;
-        }
-        return true;
     }
 
     /**
