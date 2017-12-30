@@ -16,7 +16,6 @@
         android:id="@+id/viewstub_nocontent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inflatedId="@+id/viewstub_nocontent_inflated"
         android:layout="@layout/viewstub_nocontent"
         app:layout_anchor="@+id/list_content"
         app:layout_anchorGravity="center" />

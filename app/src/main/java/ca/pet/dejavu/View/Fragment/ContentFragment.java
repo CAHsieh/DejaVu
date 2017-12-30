@@ -116,9 +116,9 @@ public class ContentFragment extends BaseFragment {
                 viewStub.inflate();
             } else if (viewStub == null) {
                 if (display) {
-                    view.findViewById(R.id.viewstub_nocontent_inflated).findViewById(R.id.txt_no_content).setVisibility(View.VISIBLE);
+                    view.findViewById(R.id.txt_no_content).setVisibility(View.VISIBLE);
                 } else {
-                    view.findViewById(R.id.viewstub_nocontent_inflated).findViewById(R.id.txt_no_content).setVisibility(View.GONE);
+                    view.findViewById(R.id.txt_no_content).setVisibility(View.GONE);
                 }
             }
         }
