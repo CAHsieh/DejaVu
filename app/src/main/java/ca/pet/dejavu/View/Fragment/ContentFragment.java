@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewStub;
 
 import java.lang.ref.WeakReference;
 
@@ -107,10 +108,18 @@ public class ContentFragment extends BaseFragment {
     public void setNoContentTextIsDisplay(boolean display) {
         View view = mainView.get();
         if (null != view) {
-            if (display) {
-                view.findViewById(R.id.txt_no_content).setVisibility(View.VISIBLE);
-            } else {
-                view.findViewById(R.id.txt_no_content).setVisibility(View.GONE);
+
+            ViewStub viewStub = view.findViewById(R.id.viewstub_nocontent);
+
+            if (viewStub != null && display) {
+                //尚未被加載過
+                viewStub.inflate();
+            } else if (viewStub == null) {
+                if (display) {
+                    view.findViewById(R.id.viewstub_nocontent_inflated).findViewById(R.id.txt_no_content).setVisibility(View.VISIBLE);
+                } else {
+                    view.findViewById(R.id.viewstub_nocontent_inflated).findViewById(R.id.txt_no_content).setVisibility(View.GONE);
+                }
             }
         }
     }

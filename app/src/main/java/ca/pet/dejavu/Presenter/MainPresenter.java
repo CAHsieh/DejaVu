@@ -172,10 +172,6 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         if (currentSelectDataList.contains(entity))
             currentSelectDataList.remove(entity);
 
-        if (dataModel.presenting_size() == 1) {
-            mainView.displayNoContentTextView(true);
-        }
-
         new NormalActionTask(this, DataEntityModel.ACTION_DELETE, entity, null).execute(dataModel);
     }
 
@@ -376,9 +372,6 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
                 //新增的後續：判斷NoContentTextView是否需要開啟
                 //以及若傳入的內容非正確網址格式，則需要自行添加標題。
-                if (dataModel.presenting_size() > 0)
-                    mainView.displayNoContentTextView(false);
-
                 if (newData != null && !URLUtil.isValidUrl(newData.getUri())) {
                     mainView.notifyInsertCompleted();
                     editTitleLink = newData;
@@ -386,12 +379,21 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 } else {
                     mainView.notifyInsertCompleted();
                 }
+
+                if (dataModel.presenting_size() > 0) {
+                    mainView.displayNoContentTextView(false);
+                } else {
+                    mainView.displayNoContentTextView(true);
+                }
                 break;
             case DataEntityModel.ACTION_QUERYALL:
                 //Query的後續：判斷NoContentTextView是否需要開啟
                 //及通知畫面更新
-                if (dataModel.presenting_size() > 0)
+                if (dataModel.presenting_size() > 0) {
                     mainView.displayNoContentTextView(false);
+                } else {
+                    mainView.displayNoContentTextView(true);
+                }
                 //fall through
             case DataEntityModel.ACTION_QUERYBYTITLE:
                 mainView.notifyDataSetChanged();
@@ -405,6 +407,11 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 } else {
                     mainView.notifyDataSetChanged();
                 }
+
+                if (dataModel.presenting_size() == 0) {
+                    mainView.displayNoContentTextView(true);
+                }
+
                 break;
             case DataEntityModel.ACTION_UPDATE:
                 //更新的後續：通知畫面更新。
