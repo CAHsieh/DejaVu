@@ -52,7 +52,7 @@ public class ImageInsertTask extends NormalActionTask {
 
         for (Uri uri : uris) {
             try {
-                Bitmap bitmap = Glide.with(context).load(uri).asBitmap().into(400, 400).get();
+                Bitmap bitmap = Glide.with(context).load(uri).asBitmap().into(200, 200).get();
                 if (bitmap != null) {
 
                     DataEntity entity = new DataEntity();
