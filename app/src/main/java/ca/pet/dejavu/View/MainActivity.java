@@ -25,6 +25,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,7 +52,7 @@ import pub.devrel.easypermissions.PermissionRequest;
  * 內容不可包含Model的使用
  * 僅透過Presenter做交流
  */
-public class MainActivity extends AppCompatActivity implements IMainView,EasyPermissions.PermissionCallbacks {
+public class MainActivity extends AppCompatActivity implements IMainView, EasyPermissions.PermissionCallbacks {
 
     private static final int PERMISSION_REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 0x101;
 
@@ -89,7 +90,8 @@ public class MainActivity extends AppCompatActivity implements IMainView,EasyPer
         super.onStart();
         Intent intent = newDataIntent == null ? getIntent() : newDataIntent;
         setIntent(null);
-        if (null == intent || intent.getAction() == null || !intent.getAction().equals(Intent.ACTION_SEND)) {
+        if (null == intent || intent.getAction() == null ||
+                (!intent.getAction().equals(Intent.ACTION_SEND) && !intent.getAction().equals(Intent.ACTION_SEND_MULTIPLE))) {
             mainPresenter.queryAll();
         } else {
             //newDataIntent只有在先開啟過再分享進來時才會有內容
@@ -175,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements IMainView,EasyPer
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        EasyPermissions.onRequestPermissionsResult(requestCode,permissions,grantResults,this);
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
     @Override
@@ -185,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements IMainView,EasyPer
 
     @Override
     public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
-        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)){
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
             new AppSettingsDialog.Builder(this)
                     .setTitle(R.string.title_permission_ask_again)
                     .setRationale(R.string.msg_permission_ask_again)
@@ -369,10 +371,12 @@ public class MainActivity extends AppCompatActivity implements IMainView,EasyPer
 
         switch (menuItem.getItemId()) {
             case R.id.navItem_url:
+                adapter.reset();
                 mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_LINK);
                 mainPresenter.queryAll();
                 break;
             case R.id.navItem_image:
+                adapter.reset();
                 mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_IMAGE);
                 mainPresenter.queryAll();
                 break;
@@ -380,6 +384,9 @@ public class MainActivity extends AppCompatActivity implements IMainView,EasyPer
                 showSnack("navItem_setting");
                 break;
         }
+
+        onBackPressed();
+
         return true;
     };
 

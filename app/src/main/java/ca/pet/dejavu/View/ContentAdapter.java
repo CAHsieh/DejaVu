@@ -10,24 +10,33 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.R;
+import ca.pet.dejavu.Utils.MyApplication;
+import ca.pet.dejavu.Utils.SPConst;
 
 /**
  * Created by CAHSIEH on 2017/10/29.
  * Adapter of RecycleView
- * 用於顯示網頁資料
+ * 用於顯示資料
  */
 
 public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHolder> {
 
     private IMainPresenter presenter = null;
 
-    private int lastSelectedPosition;
+    private Set<Integer> selectedPosition;
 
     ContentAdapter(IMainPresenter presenter) {
         this.presenter = presenter;
-        lastSelectedPosition = -1;
+        selectedPosition = new HashSet<>();
+    }
+
+    public void reset() {
+        selectedPosition.clear();
     }
 
     @Override
@@ -73,7 +82,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         }
 
         //滑動回到有選取的項目
-        if (position == lastSelectedPosition) {
+        if (selectedPosition.contains(position)) {
             holder.D.setSelected(true);
         }
     }
@@ -91,11 +100,19 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
 
         ViewHolder viewHolder = (ViewHolder) v.getTag();
 
-        if (viewHolder.getAdapterPosition() == lastSelectedPosition) {
-            lastSelectedPosition = -1;
-            viewHolder.D.setSelected(false);
+        if (MyApplication.currentVisibleType == SPConst.VISIBLE_TYPE_IMAGE) {
+            if (selectedPosition.contains(viewHolder.getAdapterPosition())) {
+                selectedPosition.remove(viewHolder.getAdapterPosition());
+                viewHolder.D.setSelected(false);
+            } else {
+                selectedPosition.add(viewHolder.getAdapterPosition());
+            }
         } else {
-            lastSelectedPosition = viewHolder.getAdapterPosition();
+            if (selectedPosition.contains(viewHolder.getAdapterPosition())) {
+                viewHolder.D.setSelected(false);
+            }
+            selectedPosition.clear();
+            selectedPosition.add(viewHolder.getAdapterPosition());
         }
 
 
@@ -126,7 +143,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         View parent;
 
         TextView title;
-        TextView link;
+        TextView descript;
 
         ImageView D;
         ImageView thumbnail;
@@ -137,7 +154,7 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
             super(v);
             parent = v;
             title = v.findViewById(R.id.content_txt_title);
-            link = v.findViewById(R.id.content_txt_link);
+            descript = v.findViewById(R.id.content_txt_link);
             D = v.findViewById(R.id.content_img_dejavu);
             thumbnail = v.findViewById(R.id.content_img_thumbnail);
             edit = v.findViewById(R.id.content_img_edit);

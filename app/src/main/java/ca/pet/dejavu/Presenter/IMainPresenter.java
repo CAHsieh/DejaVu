@@ -32,7 +32,7 @@ public interface IMainPresenter {
 
     void onTitleModifyClick(int position);
 
-    void onSendClick(String tag);
+    boolean onSendClick(String tag);
 
     void cancelTextCrawler();
 }

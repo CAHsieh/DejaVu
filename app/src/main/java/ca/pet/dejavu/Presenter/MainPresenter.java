@@ -45,7 +45,7 @@ import pub.devrel.easypermissions.EasyPermissions;
  */
 public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextListener,
         Response.Listener<JSONObject>, Response.ErrorListener,
-        LinkPreviewCallback{
+        LinkPreviewCallback {
 
     private static final String LOG_TAG = "DejaVu";
     private static final String DEJAVU_URL = "https://youtu.be/dv13gl0a-FA";
@@ -56,8 +56,6 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     private DataEntity newData = null;
     private DataEntity editTitleLink = null;
     private List<DataEntity> currentSelectDataList = null;
-
-    private boolean isMultiSelectMode = false;
 
     public MainPresenter(IMainView mainView) {
         this.mainView = mainView;
@@ -142,7 +140,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     public void onDataSelected(int position) {
         DataEntity entity = getEntity(position);
 
-        if (isMultiSelectMode) {
+        if (SPConst.VISIBLE_TYPE_IMAGE == MyApplication.currentVisibleType) {
             if (currentSelectDataList.contains(entity)) {
                 currentSelectDataList.remove(entity);
                 return;
@@ -198,14 +196,18 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
      * @param tag 發送平台
      */
     @Override
-    public void onSendClick(String tag) {
-
+    public boolean onSendClick(String tag) {
+        boolean success;
         if (SPConst.VISIBLE_TYPE_LINK == MyApplication.currentVisibleType) {
-            sendLink(tag);
+            success = sendLink(tag);
         } else {
-            sendImages(tag);
+            success = sendImages(tag);
         }
 
+        if (success) {
+            currentSelectDataList.clear();
+        }
+        return success;
     }
 
     @Override
@@ -233,8 +235,8 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
         return false;
     }
 
-    private void sendLink(String tag) {
-        DataEntity currentSelectData = currentSelectDataList.get(0);
+    private boolean sendLink(String tag) {
+        DataEntity currentSelectData = currentSelectDataList.size() > 0 ? currentSelectDataList.get(0) : null;
         String url = currentSelectData == null ? DEJAVU_URL : currentSelectData.getUri();
         Context context = MyApplication.getContext();
         if (tag == null || tag.equals(context.getString(R.string.tag_messenger))) {
@@ -246,6 +248,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 mainView.showMessengerDialog(content);
             } else {
                 mainView.showSnack(context.getString(R.string.snack_message_not_installed_messenger));
+                return false;
             }
         } else {
             //share to line
@@ -258,11 +261,13 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 context.startActivity(intent);
             } else {
                 mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
+                return false;
             }
         }
+        return true;
     }
 
-    private void sendImages(String tag) {
+    private boolean sendImages(String tag) {
         Context context = MyApplication.getContext();
         if (tag == null || tag.equals(context.getString(R.string.tag_messenger))) {
             //share to messenger
@@ -279,6 +284,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 mainView.showMessengerDialog(content);
             } else {
                 mainView.showSnack(context.getString(R.string.snack_message_not_installed_messenger));
+                return false;
             }
         } else {
             //share to line
@@ -286,7 +292,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
             //check permission
             if (!EasyPermissions.hasPermissions(MyApplication.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 mainView.requestPermission();
-                return;
+                return false;
             }
 
             if (isAppInstalled(context, context.getString(R.string.package_name_line))) {
@@ -297,7 +303,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 intent.setComponent(componentName);
                 intent.setType("image/*");
 
-                if (isMultiSelectMode) {
+                if (SPConst.VISIBLE_TYPE_IMAGE == MyApplication.currentVisibleType) {
                     intent.setAction(Intent.ACTION_SEND_MULTIPLE);
                     ArrayList<Uri> files = new ArrayList<>();
                     for (DataEntity entity : currentSelectDataList) {
@@ -320,7 +326,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                         mainView.showSnack("Shared Image Error.");
-                        return;
+                        return false;
                     }
 
                     intent.putExtra(Intent.EXTRA_STREAM, uri);
@@ -329,8 +335,10 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
 
             } else {
                 mainView.showSnack(context.getString(R.string.snack_message_not_installed_line));
+                return false;
             }
         }
+        return true;
     }
 
     /**
@@ -387,6 +395,7 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
                 //fall through
             case DataEntityModel.ACTION_QUERYBYTITLE:
                 mainView.notifyDataSetChanged();
+                currentSelectDataList.clear();
                 break;
             case DataEntityModel.ACTION_DELETE:
                 //刪除的後續：通知畫面更新。

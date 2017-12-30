@@ -9,7 +9,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+
+import java.lang.ref.WeakReference;
 
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.R;
@@ -17,6 +18,8 @@ import ca.pet.dejavu.View.ContentAdapter;
 
 /**
  * Created by CAHSIEH on 2017/12/7.
+ * 主內容Fragment，
+ * 使用單例模式。
  */
 
 public class ContentFragment extends BaseFragment {
@@ -25,9 +28,7 @@ public class ContentFragment extends BaseFragment {
 
     private IMainPresenter mainPresenter = null;
 
-    private FloatingActionButton sendButton = null;
-    private TextView noContentText = null;
-
+    private WeakReference<View> mainView;
     private ContentAdapter adapter;
 
     public ContentFragment() {
@@ -55,24 +56,28 @@ public class ContentFragment extends BaseFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        mainView = new WeakReference<>(view);
+
         RecyclerView recyclerView = view.findViewById(R.id.list_content);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 
-        sendButton = view.findViewById(R.id.fab_d);
-        sendButton.setOnClickListener(onSendClick);
-
-        noContentText = view.findViewById(R.id.txt_no_content);
+        view.findViewById(R.id.fab_d).setOnClickListener(onSendClick);
     }
 
     /**
      * 傳送按鈕的觸發事件
      * 使用mainPresenter.onSendClick來進行後續處理
      */
-    private View.OnClickListener onSendClick = (View v)
-            -> mainPresenter.onSendClick((String) v.getTag());
+    private View.OnClickListener onSendClick = (View v) -> {
+        boolean isSuccess = mainPresenter.onSendClick((String) v.getTag());
+        if (isSuccess) {
+            adapter.reset();
+            adapter.notifyDataSetChanged();
+        }
+    };
 
     public void setAdapter(ContentAdapter adapter) {
         this.adapter = adapter;
@@ -83,23 +88,30 @@ public class ContentFragment extends BaseFragment {
     }
 
     public void setSendPlatform(int id) {
-        switch (id) {
-            case R.id.menu_item_messenger:
-                sendButton.setImageResource(R.drawable.ic_action_send_messenger);
-                sendButton.setTag(getString(R.string.tag_messenger));
-                break;
-            case R.id.menu_item_line:
-                sendButton.setImageResource(R.drawable.ic_action_send_line);
-                sendButton.setTag(getString(R.string.tag_line));
-                break;
+        View view = mainView.get();
+        if (null != view) {
+            FloatingActionButton sendButton = view.findViewById(R.id.fab_d);
+            switch (id) {
+                case R.id.menu_item_messenger:
+                    sendButton.setImageResource(R.drawable.ic_action_send_messenger);
+                    sendButton.setTag(getString(R.string.tag_messenger));
+                    break;
+                case R.id.menu_item_line:
+                    sendButton.setImageResource(R.drawable.ic_action_send_line);
+                    sendButton.setTag(getString(R.string.tag_line));
+                    break;
+            }
         }
     }
 
     public void setNoContentTextIsDisplay(boolean display) {
-        if (display) {
-            noContentText.setVisibility(View.VISIBLE);
-        } else {
-            noContentText.setVisibility(View.GONE);
+        View view = mainView.get();
+        if (null != view) {
+            if (display) {
+                view.findViewById(R.id.txt_no_content).setVisibility(View.VISIBLE);
+            } else {
+                view.findViewById(R.id.txt_no_content).setVisibility(View.GONE);
+            }
         }
     }
 }
