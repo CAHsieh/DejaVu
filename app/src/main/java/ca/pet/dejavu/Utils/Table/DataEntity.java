@@ -20,56 +20,78 @@ public class DataEntity {
     private String title;
     private String uri;
     private String thumbnailUrl;
-    @Generated(hash = 883337684)
+    private float imageSize;
+
+    @Generated(hash = 1269069131)
     public DataEntity(Long Id, Long parent_Id, int type, String title, String uri,
-            String thumbnailUrl) {
+            String thumbnailUrl, float imageSize) {
         this.Id = Id;
         this.parent_Id = parent_Id;
         this.type = type;
         this.title = title;
         this.uri = uri;
         this.thumbnailUrl = thumbnailUrl;
+        this.imageSize = imageSize;
     }
+
     @Generated(hash = 1892108943)
     public DataEntity() {
     }
+
     public Long getId() {
         return this.Id;
     }
+
     public void setId(Long Id) {
         this.Id = Id;
     }
+
     public Long getParent_Id() {
         return this.parent_Id;
     }
+
     public void setParent_Id(Long parent_Id) {
         this.parent_Id = parent_Id;
     }
+
     public int getType() {
         return this.type;
     }
+
     public void setType(int type) {
         this.type = type;
     }
+
     public String getTitle() {
         return this.title;
     }
+
     public void setTitle(String title) {
         this.title = title;
     }
+
     public String getUri() {
         return this.uri;
     }
+
     public void setUri(String uri) {
         this.uri = uri;
     }
+
     public String getThumbnailUrl() {
         return this.thumbnailUrl;
     }
+
     public void setThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
     }
 
+    public float getImageSize() {
+        return this.imageSize;
+    }
 
+    public void setImageSize(float imageSize) {
+        this.imageSize = imageSize;
+    }
 
 }

@@ -44,7 +44,14 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ViewHold
         holder.thumbnail.setVisibility(View.VISIBLE);
         holder.D.setSelected(false);
         holder.title.setText(presenter.getEntity(position).getTitle());//設置標題
-        holder.link.setText(presenter.getEntity(position).getUri());//設置網址
+
+        if (MyApplication.currentVisibleType == SPConst.VISIBLE_TYPE_LINK) {
+            holder.descript.setText(presenter.getEntity(position).getUri());//設置網址
+        } else {
+            String size = presenter.getEntity(position).getImageSize() + " kb";
+            holder.descript.setText(size);//設置圖片大小
+        }
+
 
         holder.D.setOnClickListener(mClickAction);
         holder.parent.setOnClickListener(mClickAction);

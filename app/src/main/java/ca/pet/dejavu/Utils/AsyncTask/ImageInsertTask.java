@@ -64,7 +64,8 @@ public class ImageInsertTask extends NormalActionTask {
                     bitmap.compress(Bitmap.CompressFormat.WEBP, 100, baos);
 
                     BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file));
-                    outputStream.write(baos.toByteArray());
+                    byte[] outBytes = baos.toByteArray();
+                    outputStream.write(outBytes);
                     outputStream.flush();
                     outputStream.close();
                     baos.close();
@@ -73,6 +74,7 @@ public class ImageInsertTask extends NormalActionTask {
                     entity.setTitle(file.getName());
                     entity.setUri(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file).toString());
                     entity.setThumbnailUrl(file.getAbsolutePath());
+                    entity.setImageSize(Math.round((outBytes.length / 1024f) * 100) / 100f);
                     entityDao.update(entity);
 
                     successCount++;
