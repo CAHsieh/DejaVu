@@ -17,6 +17,7 @@ import android.support.transition.Fade;
 import android.support.transition.Transition;
 import android.support.transition.TransitionManager;
 import android.support.transition.TransitionSet;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -43,6 +44,7 @@ import ca.pet.dejavu.Utils.MyApplication;
 import ca.pet.dejavu.Utils.SPConst;
 import ca.pet.dejavu.View.Fragment.BaseFragment;
 import ca.pet.dejavu.View.Fragment.ContentFragment;
+import ca.pet.dejavu.View.Fragment.SettingFragment;
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
 import pub.devrel.easypermissions.PermissionRequest;
@@ -345,6 +347,21 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
         transaction.commit();
     }
 
+    private void changeFragment(String fragmentTag) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        BaseFragment needShowFragment = (BaseFragment) fragmentManager.findFragmentByTag(fragmentTag);
+
+        if (needShowFragment == null) {
+            SettingFragment fragment = SettingFragment.getInstance();
+            transaction.replace(R.id.main_container, fragment, fragment.getFragmentTag());
+        } else if (!needShowFragment.isVisible()) {
+            transaction.replace(R.id.main_container, needShowFragment, needShowFragment.getFragmentTag());
+        }
+
+        transaction.commit();
+    }
+
     /**
      * 開啟抽屜
      */
@@ -374,14 +391,17 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
                 adapter.reset();
                 mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_LINK);
                 mainPresenter.queryAll();
+                changeFragment(SPConst.FRAGMENT_TAG_CONTENT);
                 break;
             case R.id.navItem_image:
                 adapter.reset();
                 mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_IMAGE);
                 mainPresenter.queryAll();
+                changeFragment(SPConst.FRAGMENT_TAG_CONTENT);
                 break;
             case R.id.navItem_setting:
                 showSnack("navItem_setting");
+                changeFragment(SPConst.FRAGMENT_TAG_SETTING);
                 break;
         }
 

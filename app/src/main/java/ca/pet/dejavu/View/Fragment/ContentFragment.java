@@ -15,6 +15,7 @@ import java.lang.ref.WeakReference;
 
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.R;
+import ca.pet.dejavu.Utils.SPConst;
 import ca.pet.dejavu.View.ContentAdapter;
 
 /**
@@ -33,7 +34,7 @@ public class ContentFragment extends BaseFragment {
     private ContentAdapter adapter;
 
     public ContentFragment() {
-        fragmentTag = "Content";
+        fragmentTag = SPConst.FRAGMENT_TAG_CONTENT;
     }
 
     synchronized public static ContentFragment getInstance() {
@@ -50,7 +51,7 @@ public class ContentFragment extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.content_layout_main, container, false);
+        return inflater.inflate(R.layout.fragment_content, container, false);
     }
 
     @Override

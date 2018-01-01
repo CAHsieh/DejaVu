@@ -8,9 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import ca.pet.dejavu.R;
+import ca.pet.dejavu.Utils.SPConst;
 
 /**
  * Created by CAHSIEH on 2017/12/7.
+ * 設定頁面
  */
 
 public class SettingFragment extends BaseFragment {
@@ -18,7 +20,7 @@ public class SettingFragment extends BaseFragment {
     private static SettingFragment instance;
 
     public SettingFragment() {
-        fragmentTag = "Setting";
+        fragmentTag = SPConst.FRAGMENT_TAG_SETTING;
     }
 
     synchronized public static SettingFragment getInstance() {
@@ -36,7 +38,7 @@ public class SettingFragment extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.content_layout_main, container, false);
+        return inflater.inflate(R.layout.fragment_setting, container, false);
     }
 
     @Override

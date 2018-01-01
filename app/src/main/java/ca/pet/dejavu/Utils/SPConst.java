@@ -12,4 +12,7 @@ public class SPConst {
 
     public static final int VISIBLE_TYPE_LINK = 0x01;
     public static final int VISIBLE_TYPE_IMAGE = 0x02;
+
+    public static final String FRAGMENT_TAG_CONTENT = "Content";
+    public static final String FRAGMENT_TAG_SETTING = "Setting";
 }
