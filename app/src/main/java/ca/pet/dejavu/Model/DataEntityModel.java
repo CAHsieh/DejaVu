@@ -1,6 +1,7 @@
 package ca.pet.dejavu.Model;
 
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.webkit.URLUtil;
 
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -10,11 +11,13 @@ import com.leocardz.link.preview.library.TextCrawler;
 import org.greenrobot.greendao.Property;
 import org.greenrobot.greendao.query.QueryBuilder;
 
+import java.io.File;
 import java.util.List;
 
 import ca.pet.dejavu.Presenter.MainPresenter;
 import ca.pet.dejavu.Utils.DBService;
 import ca.pet.dejavu.Utils.MyApplication;
+import ca.pet.dejavu.Utils.SPConst;
 import ca.pet.dejavu.Utils.Table.DataEntity;
 import ca.pet.dejavu.Utils.Table.DataEntityDao;
 
@@ -157,6 +160,16 @@ public class DataEntityModel implements IDataModel {
     private int delete(DataEntity entity) {
         int position = presenting_list.indexOf(entity);
         presenting_list.remove(entity);
+
+        //delete image need to delete file.
+        if (entity.getType() == SPConst.VISIBLE_TYPE_IMAGE){
+            File file = new File(entity.getThumbnailUrl());
+            if (file.exists()) {
+                file.delete();
+                //todo not success process.
+            }
+        }
+
         entityDao.delete(entity);
         return position;
     }
