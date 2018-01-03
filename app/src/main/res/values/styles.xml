@@ -20,4 +20,8 @@
         <item name="android:typeface">monospace</item>
     </style>
 
+    <style name="SwitchCompatTheme" >
+        <item name="trackTint">@drawable/selector_switch</item>
+    </style>
+
 </resources>
