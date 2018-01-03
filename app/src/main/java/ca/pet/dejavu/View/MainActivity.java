@@ -347,18 +347,16 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
         transaction.commit();
     }
 
-    private void changeFragment(String fragmentTag) {
+    private void changeFragment(BaseFragment needShowFragment) {
+        if (currentFragment.equals(needShowFragment)){
+            return;
+        }else{
+            currentFragment = needShowFragment;
+        }
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        BaseFragment needShowFragment = (BaseFragment) fragmentManager.findFragmentByTag(fragmentTag);
-
-        if (needShowFragment == null) {
-            SettingFragment fragment = SettingFragment.getInstance();
-            transaction.replace(R.id.main_container, fragment, fragment.getFragmentTag());
-        } else if (!needShowFragment.isVisible()) {
-            transaction.replace(R.id.main_container, needShowFragment, needShowFragment.getFragmentTag());
-        }
-
+        transaction.replace(R.id.main_container, needShowFragment, needShowFragment.getFragmentTag());
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
     }
 
@@ -391,17 +389,17 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
                 adapter.reset();
                 mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_LINK);
                 mainPresenter.queryAll();
-                changeFragment(SPConst.FRAGMENT_TAG_CONTENT);
+                changeFragment(ContentFragment.getInstance());
                 break;
             case R.id.navItem_image:
                 adapter.reset();
                 mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_IMAGE);
                 mainPresenter.queryAll();
-                changeFragment(SPConst.FRAGMENT_TAG_CONTENT);
+                changeFragment(ContentFragment.getInstance());
                 break;
             case R.id.navItem_setting:
                 showSnack("navItem_setting");
-                changeFragment(SPConst.FRAGMENT_TAG_SETTING);
+                changeFragment(SettingFragment.getInstance());
                 break;
         }
 
