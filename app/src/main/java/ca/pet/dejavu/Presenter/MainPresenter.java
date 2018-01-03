@@ -86,10 +86,11 @@ public class MainPresenter implements IMainPresenter, SearchView.OnQueryTextList
     @Override
     public void addNewUrl(String title, String url) {
         newData = new DataEntity();
+        newData.setType(SPConst.VISIBLE_TYPE_LINK);
         newData.setUri(url);
         newData.setTitle(title);
+        newData.setIsDelete(false);
         newData.setParent_Id(null);
-        newData.setType(SPConst.VISIBLE_TYPE_LINK);
         new NormalActionTask(this, DataEntityModel.ACTION_INSERT, newData, null).execute(dataModel);
     }
 

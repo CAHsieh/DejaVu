@@ -22,9 +22,11 @@ public class DataEntity {
     private String thumbnailUrl;
     private float imageSize;
 
-    @Generated(hash = 1269069131)
+    private boolean isDelete;
+
+    @Generated(hash = 2052968792)
     public DataEntity(Long Id, Long parent_Id, int type, String title, String uri,
-            String thumbnailUrl, float imageSize) {
+            String thumbnailUrl, float imageSize, boolean isDelete) {
         this.Id = Id;
         this.parent_Id = parent_Id;
         this.type = type;
@@ -32,6 +34,7 @@ public class DataEntity {
         this.uri = uri;
         this.thumbnailUrl = thumbnailUrl;
         this.imageSize = imageSize;
+        this.isDelete = isDelete;
     }
 
     @Generated(hash = 1892108943)
@@ -92,6 +95,14 @@ public class DataEntity {
 
     public void setImageSize(float imageSize) {
         this.imageSize = imageSize;
+    }
+
+    public boolean getIsDelete() {
+        return this.isDelete;
+    }
+
+    public void setIsDelete(boolean isDelete) {
+        this.isDelete = isDelete;
     }
 
 }

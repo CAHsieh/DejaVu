@@ -57,6 +57,7 @@ public class ImageInsertTask extends NormalActionTask {
 
                     DataEntity entity = new DataEntity();
                     entity.setType(SPConst.VISIBLE_TYPE_IMAGE);
+                    entity.setIsDelete(true);
                     Long id = entityDao.insert(entity);
 
                     File file = new File(dir, "image_" + id + ".webp");
@@ -75,6 +76,7 @@ public class ImageInsertTask extends NormalActionTask {
                     entity.setUri(FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file).toString());
                     entity.setThumbnailUrl(file.getAbsolutePath());
                     entity.setImageSize(Math.round((outBytes.length / 1024f) * 100) / 100f);
+                    entity.setIsDelete(false);
                     entityDao.update(entity);
 
                     successCount++;

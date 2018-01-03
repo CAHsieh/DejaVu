@@ -9,6 +9,7 @@ import com.android.volley.toolbox.Volley;
 import com.leocardz.link.preview.library.TextCrawler;
 
 import org.greenrobot.greendao.Property;
+import org.greenrobot.greendao.query.DeleteQuery;
 import org.greenrobot.greendao.query.QueryBuilder;
 
 import java.io.File;
@@ -36,8 +37,10 @@ public class DataEntityModel implements IDataModel {
     public static final int ACTION_UPDATE = 0x04;
     public static final int ACTION_DELETE = 0x05;
 
-    private DataEntityDao entityDao;
     private Property typeProperty = DataEntityDao.Properties.Type;
+    private Property isDeleteProperty = DataEntityDao.Properties.IsDelete;
+
+    private DataEntityDao entityDao;
     private List<DataEntity> presenting_list = null;
     private int queryType;
     private String currentTitleCondition = "";
@@ -50,6 +53,7 @@ public class DataEntityModel implements IDataModel {
         DBService service = DBService.getInstance();
         entityDao = service.getDataEntityDao();
         this.mainPresenter = mainPresenter;
+        cleanTable();
     }
 
     @Override
@@ -133,7 +137,9 @@ public class DataEntityModel implements IDataModel {
      */
     private void queryAll() {
         Property idProperty = DataEntityDao.Properties.Id;
-        presenting_list = entityDao.queryBuilder().where(typeProperty.eq(queryType)).orderDesc(idProperty).list();
+        presenting_list = entityDao.queryBuilder().where(typeProperty.eq(queryType),
+                isDeleteProperty.eq(false))
+                .orderDesc(idProperty).list();
     }
 
     /**
@@ -148,7 +154,10 @@ public class DataEntityModel implements IDataModel {
         QueryBuilder<DataEntity> queryBuilder = entityDao.queryBuilder();
         Property titleProperty = DataEntityDao.Properties.Title;
         Property idProperty = DataEntityDao.Properties.Id;
-        presenting_list = queryBuilder.where(typeProperty.eq(queryType), titleProperty.like(like)).orderDesc(idProperty).list();
+        presenting_list = queryBuilder.where(typeProperty.eq(queryType),
+                isDeleteProperty.eq(false),
+                titleProperty.like(like))
+                .orderDesc(idProperty).list();
     }
 
     /**
@@ -162,15 +171,19 @@ public class DataEntityModel implements IDataModel {
         presenting_list.remove(entity);
 
         //delete image need to delete file.
-        if (entity.getType() == SPConst.VISIBLE_TYPE_IMAGE){
+        if (entity.getType() == SPConst.VISIBLE_TYPE_IMAGE) {
             File file = new File(entity.getThumbnailUrl());
             if (file.exists()) {
-                file.delete();
-                //todo not success process.
+                if (file.delete()) {
+                    entityDao.delete(entity);
+                } else {
+                    entity.setIsDelete(true);
+                    entityDao.update(entity);
+                }
             }
+        } else {
+            entityDao.delete(entity);
         }
-
-        entityDao.delete(entity);
         return position;
     }
 
@@ -214,4 +227,11 @@ public class DataEntityModel implements IDataModel {
         }
     }
 
+    private void cleanTable() {
+        new Thread(() -> {
+            DeleteQuery<DataEntity> deleteQuery = entityDao.queryBuilder().
+                    where(isDeleteProperty.eq(true)).buildDelete();
+            deleteQuery.executeDeleteWithoutDetachingEntities();
+        }).start();
+    }
 }
