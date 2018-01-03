@@ -100,7 +100,7 @@ public class DataEntityModel implements IDataModel {
      * @return 目前顯示內容的資料數
      */
     @Override
-    public int presenting_size() {
+    synchronized public int presenting_size() {
         if (presenting_list != null) {
             return presenting_list.size();
         }
@@ -115,7 +115,7 @@ public class DataEntityModel implements IDataModel {
      * @return 第i筆資料
      */
     @Override
-    public DataEntity getEntity(int i) {
+    synchronized public DataEntity getEntity(int i) {
         if (presenting_list != null) {
             return presenting_list.get(i);
         }

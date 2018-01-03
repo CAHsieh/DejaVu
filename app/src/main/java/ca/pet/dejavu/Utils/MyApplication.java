@@ -13,25 +13,23 @@ import java.lang.ref.WeakReference;
 
 public class MyApplication extends Application {
 
-    private static WeakReference<MyApplication> mApplication;
+    private static WeakReference<Context> mContext;
 
     public static int currentVisibleType;
 
     public static Context getContext() {
-        assert mApplication != null;
-        MyApplication application = mApplication.get();
-        return application.getApplicationContext();
+        assert mContext != null;
+        return mContext.get();
     }
 
     public static SharedPreferences getSharedPreferences() {
-        assert mApplication != null;
-        Context context = mApplication.get().getApplicationContext();
-        return context.getSharedPreferences(SPConst.SP_NAME, Context.MODE_PRIVATE);
+        assert mContext != null;
+        return mContext.get().getSharedPreferences(SPConst.SP_NAME, Context.MODE_PRIVATE);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mApplication = new WeakReference<>(this);
+        mContext = new WeakReference<>(getApplicationContext());
     }
 }

@@ -12,7 +12,7 @@ import ca.pet.dejavu.Utils.Table.DataEntityDao;
 
 public class DBService {
 
-    private static DBService instance;
+    private volatile static DBService instance;
     private static final String DB_NAME = "DEJAVU.db";
 
     private DaoSession daoSession;
@@ -26,9 +26,7 @@ public class DBService {
     synchronized public static DBService getInstance() {
         if (instance == null) {
             synchronized (DBService.class) {
-                if (instance == null) {
-                    instance = new DBService();
-                }
+                instance = new DBService();
             }
         }
         return instance;
@@ -36,6 +34,7 @@ public class DBService {
 
     /**
      * 獲取LinkEntity的DAO
+     *
      * @return LinkEntityDao
      */
     public DataEntityDao getDataEntityDao() {
