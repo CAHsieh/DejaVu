@@ -1,5 +1,6 @@
 package ca.pet.dejavu.View.Fragment;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,6 +16,7 @@ import java.lang.ref.WeakReference;
 
 import ca.pet.dejavu.Presenter.IMainPresenter;
 import ca.pet.dejavu.R;
+import ca.pet.dejavu.Utils.MyApplication;
 import ca.pet.dejavu.Utils.SPConst;
 import ca.pet.dejavu.View.ContentAdapter;
 
@@ -67,6 +69,10 @@ public class ContentFragment extends BaseFragment {
         recyclerView.setAdapter(adapter);
 
         view.findViewById(R.id.fab_d).setOnClickListener(onSendClick);
+
+        SharedPreferences preferences = MyApplication.getSharedPreferences();
+        int currentVisibleType = preferences.getInt(SPConst.SP_FIELD_DEFAULT_SEND_PLATFORM, R.id.menu_item_messenger);
+        setFAB(currentVisibleType, view.findViewById(R.id.fab_d));
     }
 
     /**
@@ -92,17 +98,7 @@ public class ContentFragment extends BaseFragment {
     public void setSendPlatform(int id) {
         View view = mainView.get();
         if (null != view) {
-            FloatingActionButton sendButton = view.findViewById(R.id.fab_d);
-            switch (id) {
-                case R.id.menu_item_messenger:
-                    sendButton.setImageResource(R.drawable.ic_action_send_messenger);
-                    sendButton.setTag(getString(R.string.tag_messenger));
-                    break;
-                case R.id.menu_item_line:
-                    sendButton.setImageResource(R.drawable.ic_action_send_line);
-                    sendButton.setTag(getString(R.string.tag_line));
-                    break;
-            }
+            setFAB(id, view.findViewById(R.id.fab_d));
         }
     }
 
@@ -122,6 +118,19 @@ public class ContentFragment extends BaseFragment {
                     view.findViewById(R.id.txt_no_content).setVisibility(View.GONE);
                 }
             }
+        }
+    }
+
+    private void setFAB(int id, FloatingActionButton sendButton) {
+        switch (id) {
+            case R.id.menu_item_messenger:
+                sendButton.setImageResource(R.drawable.ic_action_send_messenger);
+                sendButton.setTag(getString(R.string.tag_messenger));
+                break;
+            case R.id.menu_item_line:
+                sendButton.setImageResource(R.drawable.ic_action_send_line);
+                sendButton.setTag(getString(R.string.tag_line));
+                break;
         }
     }
 }

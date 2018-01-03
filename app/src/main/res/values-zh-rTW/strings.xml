@@ -14,4 +14,5 @@
     <string name="btn_text_next">繼續</string>
     <string name="title_permission_ask_again">確認權限</string>
     <string name="msg_permission_ask_again">此功能無法在沒有權限的情況下執行，點擊確認開啟App設定頁面並修改使用權限。</string>
+    <string name="setting_title_launch_page">APP起始頁面</string>
 </resources>

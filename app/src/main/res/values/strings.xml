@@ -31,4 +31,6 @@
     <string name="title_permission_ask_again">Permissions Required</string>
     <string name="msg_permission_ask_again">This app may not work correctly without the requested permissions.
         Open the app settings screen to modify app permissions.</string>
+    <string name="setting_title_launch_page">Default Launch Page</string>
+    <string name="setting_title_send_platform">Default Sending Platform</string>
 </resources>

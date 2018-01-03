@@ -8,7 +8,8 @@ public class SPConst {
 
     static final String SP_NAME = "DEJAVU_SP";
 
-    public static final String SP_FIELD_START_TYPE = "START_TYPE";
+    public static final String SP_FIELD_DEFAULT_SEND_PLATFORM = "SEND_PLATFORM";
+    public static final String SP_FIELD_DEFAULT_LAUNCH_PAGE = "VISIBLE_TYPE";
 
     public static final int VISIBLE_TYPE_LINK = 0x01;
     public static final int VISIBLE_TYPE_IMAGE = 0x02;

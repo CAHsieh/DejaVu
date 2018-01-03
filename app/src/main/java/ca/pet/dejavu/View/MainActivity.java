@@ -17,7 +17,6 @@ import android.support.transition.Fade;
 import android.support.transition.Transition;
 import android.support.transition.TransitionManager;
 import android.support.transition.TransitionSet;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -26,7 +25,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -333,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
 
         SharedPreferences preferences = MyApplication.getSharedPreferences();
 
-        int currentVisibleType = preferences.getInt(SPConst.SP_FIELD_START_TYPE, SPConst.VISIBLE_TYPE_LINK);
+        int currentVisibleType = preferences.getInt(SPConst.SP_FIELD_DEFAULT_LAUNCH_PAGE, SPConst.VISIBLE_TYPE_LINK);
         mainPresenter.setQueryType(currentVisibleType);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -348,9 +346,9 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
     }
 
     private void changeFragment(BaseFragment needShowFragment) {
-        if (currentFragment.equals(needShowFragment)){
+        if (currentFragment.equals(needShowFragment)) {
             return;
-        }else{
+        } else {
             currentFragment = needShowFragment;
         }
         FragmentManager fragmentManager = getSupportFragmentManager();
