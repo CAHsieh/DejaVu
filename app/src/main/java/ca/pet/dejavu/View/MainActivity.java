@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.transition.ChangeBounds;
@@ -204,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
     public void showSnack(String message) {
         if (snackbar == null) {
             snackbar = Snackbar
-                    .make(findViewById(R.id.list_content), message, Snackbar.LENGTH_SHORT);
+                    .make(findViewById(R.id.main_container), message, Snackbar.LENGTH_SHORT);
         }
         if (!snackbar.isShown()) {
             snackbar.setText(message);
@@ -334,12 +335,15 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
         int currentVisibleType = preferences.getInt(SPConst.SP_FIELD_DEFAULT_LAUNCH_PAGE, SPConst.VISIBLE_TYPE_LINK);
         mainPresenter.setQueryType(currentVisibleType);
 
+        findViewById(R.id.fab_d).setOnClickListener(onSendClick);
+        int currentSendingPlatform = preferences.getInt(SPConst.SP_FIELD_DEFAULT_SEND_PLATFORM, R.id.menu_item_messenger);
+        setFAB(currentSendingPlatform, findViewById(R.id.fab_d));
+
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         adapter = new ContentAdapter(mainPresenter);
         ContentFragment contentFragment = ContentFragment.getInstance();
         contentFragment.setAdapter(adapter);
-        contentFragment.setPresenter(mainPresenter);
         currentFragment = contentFragment;
         transaction.add(R.id.main_container, currentFragment, currentFragment.getFragmentTag());
         transaction.commit();
@@ -358,6 +362,14 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
         transaction.commit();
     }
 
+    private void changeVisibleType(int visibleType) {
+        adapter.reset();
+        mainPresenter.setQueryType(visibleType);
+        mainPresenter.queryAll();
+        changeFragment(ContentFragment.getInstance());
+        findViewById(R.id.fab_d).animate().alpha(1).scaleX(1).scaleY(1).start();
+    }
+
     /**
      * 開啟抽屜
      */
@@ -365,11 +377,36 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
         ((DrawerLayout) findViewById(R.id.main_drawer)).openDrawer(Gravity.START);
     }
 
+    private void setFAB(int id, FloatingActionButton sendButton) {
+        switch (id) {
+            case R.id.menu_item_messenger:
+                sendButton.setImageResource(R.drawable.ic_action_send_messenger);
+                sendButton.setTag(getString(R.string.tag_messenger));
+                break;
+            case R.id.menu_item_line:
+                sendButton.setImageResource(R.drawable.ic_action_send_line);
+                sendButton.setTag(getString(R.string.tag_line));
+                break;
+        }
+    }
+
     /**
      * NavigationIcon被點擊時的觸發事件，
      * 觸發反應為openDrawer。
      */
     private View.OnClickListener onNavigationIconClick = (v) -> openDrawer();
+
+    /**
+     * 傳送按鈕的觸發事件
+     * 使用mainPresenter.onSendClick來進行後續處理
+     */
+    private View.OnClickListener onSendClick = (View v) -> {
+        boolean isSuccess = mainPresenter.onSendClick((String) v.getTag());
+        if (isSuccess) {
+            adapter.reset();
+            adapter.notifyDataSetChanged();
+        }
+    };
 
     /**
      * NavigationView項目的點擊事件
@@ -384,20 +421,14 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
 
         switch (menuItem.getItemId()) {
             case R.id.navItem_url:
-                adapter.reset();
-                mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_LINK);
-                mainPresenter.queryAll();
-                changeFragment(ContentFragment.getInstance());
+                changeVisibleType(SPConst.VISIBLE_TYPE_LINK);
                 break;
             case R.id.navItem_image:
-                adapter.reset();
-                mainPresenter.setQueryType(SPConst.VISIBLE_TYPE_IMAGE);
-                mainPresenter.queryAll();
-                changeFragment(ContentFragment.getInstance());
+                changeVisibleType(SPConst.VISIBLE_TYPE_IMAGE);
                 break;
             case R.id.navItem_setting:
-                showSnack("navItem_setting");
                 changeFragment(SettingFragment.getInstance());
+                findViewById(R.id.fab_d).animate().alpha(0).scaleX(0).scaleY(0).start();
                 break;
         }
 
@@ -415,11 +446,11 @@ public class MainActivity extends AppCompatActivity implements IMainView, EasyPe
         //判斷不同的Item
         switch (itemId) {
             case R.id.menu_item_messenger:
-                ContentFragment.getInstance().setSendPlatform(itemId);
+                setFAB(itemId, findViewById(R.id.fab_d));
                 showSnack(getString(R.string.snack_message_change_app_messenger));
                 break;
             case R.id.menu_item_line:
-                ContentFragment.getInstance().setSendPlatform(itemId);
+                setFAB(itemId, findViewById(R.id.fab_d));
                 showSnack(getString(R.string.snack_message_change_app_line));
                 break;
             case R.id.menu_item_search: // 點擊SearchView
