@@ -13,6 +13,7 @@ import org.greenrobot.greendao.query.DeleteQuery;
 import org.greenrobot.greendao.query.QueryBuilder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import ca.pet.dejavu.Presenter.MainPresenter;
@@ -229,9 +230,16 @@ public class DataEntityModel implements IDataModel {
 
     private void cleanTable() {
         new Thread(() -> {
-            DeleteQuery<DataEntity> deleteQuery = entityDao.queryBuilder().
-                    where(isDeleteProperty.eq(true)).buildDelete();
-            deleteQuery.executeDeleteWithoutDetachingEntities();
+            List<DataEntity> list = entityDao.queryBuilder().
+                    where(isDeleteProperty.eq(true)).list();
+            List<DataEntity> deleteList = new ArrayList<>();
+            for (DataEntity entity : list) {
+                File file = new File(entity.getThumbnailUrl());
+                if (!file.exists() || (file.exists() && file.delete())){
+                    deleteList.add(entity);
+                }
+            }
+            entityDao.deleteInTx(deleteList);
         }).start();
     }
 }
