@@ -24,6 +24,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+-keep class android.support.v7.widget.SearchView { *; }
+
 #facebook sdk
 -keepclassmembers class * implements java.io.Serializable {
     private static final java.io.ObjectStreamField[] serialPersistentFields;
@@ -43,18 +45,6 @@
     public android.os.Bundle getSkuDetails(int, java.lang.String, java.lang.String, android.os.Bundle);
 }
 
-#EventBus
-#-keepattributes *Annotation*
-#-keepclassmembers class ** {
-#    @org.greenrobot.eventbus.Subscribe <methods>;
-#}
-#-keep enum org.greenrobot.eventbus.ThreadMode { *; }
-#
-#    # Only required if you use AsyncExecutor
-#-keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
-#    <init>(java.lang.Throwable);
-#}
-
 #greenDAO
 -keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
 public static java.lang.String TABLENAME;
@@ -72,11 +62,6 @@ public static java.lang.String TABLENAME;
   **[] $VALUES;
   public *;
 }
-
-    # for DexGuard only
--keepresourcexmlelements manifest/application/meta-data@value=GlideModule
-
-
 
 #link preview
 -keeppackagenames org.jsoup.nodes
